@@ -7,11 +7,11 @@
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can log in with email and master password, receiving JWT access + refresh tokens
-- [ ] **AUTH-02**: Account locks after 5 consecutive failed login attempts (lockout stored in DB, not in memory)
-- [ ] **AUTH-03**: Sessions auto-expire after 15 minutes of inactivity (configurable via env)
-- [ ] **AUTH-04**: User can log out, invalidating all current session tokens
-- [ ] **AUTH-05**: User can reset password via a verified email link
+- [x] **AUTH-01**: User can log in with email and master password, receiving JWT access + refresh tokens
+- [x] **AUTH-02**: Account locks after 5 consecutive failed login attempts (lockout stored in DB, not in memory)
+- [x] **AUTH-03**: Sessions auto-expire after 15 minutes of inactivity (configurable via env)
+- [x] **AUTH-04**: User can log out, invalidating all current session tokens
+- [x] **AUTH-05**: User can reset password via a verified email link
 
 ### User Management
 
@@ -106,11 +106,11 @@
 | INFRA-01 | Phase 1: Foundation & Schema | Complete |
 | INFRA-02 | Phase 1: Foundation & Schema | Complete |
 | INFRA-03 | Phase 1: Foundation & Schema | Complete |
-| AUTH-01 | Phase 2: Authentication | Pending |
-| AUTH-02 | Phase 2: Authentication | Pending |
-| AUTH-03 | Phase 2: Authentication | Pending |
-| AUTH-04 | Phase 2: Authentication | Pending |
-| AUTH-05 | Phase 2: Authentication | Pending |
+| AUTH-01 | Phase 2: Authentication | Complete |
+| AUTH-02 | Phase 2: Authentication | Complete |
+| AUTH-03 | Phase 2: Authentication | Complete |
+| AUTH-04 | Phase 2: Authentication | Complete |
+| AUTH-05 | Phase 2: Authentication | Complete |
 | USER-01 | Phase 3: User Management & RBAC | Pending |
 | USER-02 | Phase 3: User Management & RBAC | Pending |
 | USER-03 | Phase 3: User Management & RBAC | Pending |
