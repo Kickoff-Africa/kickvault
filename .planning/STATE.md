@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 1 of 8 (Foundation & Schema)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-07-29 — Completed 01-02-PLAN.md (Prisma schema)
+Last activity: 2026-07-29 — Completed 01-01-PLAN.md (Project scaffold)
 
-Progress: [█░░░░░░░░░] ~10%
+Progress: [██░░░░░░░░] ~20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 3 min
-- Total execution time: 0.05 hours
+- Total plans completed: 2
+- Average duration: 5 min
+- Total execution time: 0.17 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation-and-schema | 1/3 | 3 min | 3 min |
+| 01-foundation-and-schema | 2/3 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (3 min)
+- Last 5 plans: 01-02 (3 min), 01-01 (7 min)
 - Trend: Starting
 
 *Updated after each plan completion*
@@ -45,6 +45,8 @@ Recent decisions affecting current work:
 - [Roadmap]: 8-phase build order derived from research — Foundation, Auth, RBAC, ACLs, Credentials, Assets, Audit, Dashboard
 - [Roadmap]: Phases 5 and 6 can execute in parallel (both depend on Phase 4, not each other)
 - [Roadmap]: ACLs split into own phase (Phase 4) — per-resource permissions are complex enough to warrant dedicated focus
+- [01-01]: Named import `{ pinoHttp }` required for Node16 module resolution (default import not callable for CJS packages)
+- [01-01]: Prisma 7 schema removes url from datasource block; connection URL lives in prisma.config.ts
 - [01-02]: Prisma 7 requires prisma.config.ts for datasource URL (url no longer in datasource block)
 - [01-02]: AuditLog has no updatedAt -- immutability enforced at app and DB layer
 
@@ -58,6 +60,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-29T11:02:32Z
-Stopped at: Completed 01-02-PLAN.md (Prisma schema)
+Last session: 2026-07-29T11:06:01Z
+Stopped at: Completed 01-01-PLAN.md (Project scaffold)
 Resume file: None

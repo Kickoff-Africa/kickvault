@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Schema | 0/3 | Not started | - |
+| 1. Foundation & Schema | 2/3 | In progress | - |
 | 2. Authentication | 0/3 | Not started | - |
 | 3. User Management & RBAC | 0/2 | Not started | - |
 | 4. Per-Resource ACLs | 0/2 | Not started | - |
