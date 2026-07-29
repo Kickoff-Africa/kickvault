@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation & Schema** - Project scaffolding, Prisma schema, Docker, health checks, crypto module
 - [x] **Phase 2: Authentication** - Login, JWT sessions, lockout, logout, password reset
-- [ ] **Phase 3: User Management & RBAC** - User invites, role enforcement, deactivation, password change
+- [x] **Phase 3: User Management & RBAC** - User invites, role enforcement, deactivation, password change
 - [ ] **Phase 4: Per-Resource ACLs** - Explicit access lists on credentials and assets, grant/revoke endpoints
 - [ ] **Phase 5: Credential Vault** - Encrypted credential CRUD, masked responses, secure reveal, expiry tracking
 - [ ] **Phase 6: Asset Management** - Asset CRUD, categories, status state machine, access-scoped operations
@@ -68,9 +68,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 03-01-PLAN.md — Phase 3 infrastructure (schema migration, ConflictError, token/email helpers, requireRole middleware, loginUser mustChangePassword)
+- [x] 03-01-PLAN.md — Phase 3 infrastructure (schema migration, ConflictError, token/email helpers, requireRole middleware, loginUser mustChangePassword)
 - [x] 03-02-PLAN.md — Users module (validation, service, controller, routes with RBAC enforcement)
-- [ ] 03-03-PLAN.md — Integration tests for all USER requirements (invite, deactivate, RBAC, password change)
+- [x] 03-03-PLAN.md — Integration tests for all USER requirements (invite, deactivate, RBAC, password change)
 
 ### Phase 4: Per-Resource ACLs
 **Goal**: Every credential and asset has an explicit access list — users can only access resources they have been specifically granted permission to
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 |-------|----------------|--------|-----------|
 | 1. Foundation & Schema | 3/3 | Complete | 2026-07-29 |
 | 2. Authentication | 2/2 | Complete | 2026-07-29 |
-| 3. User Management & RBAC | 0/3 | Not started | - |
+| 3. User Management & RBAC | 3/3 | Complete | 2026-07-29 |
 | 4. Per-Resource ACLs | 0/2 | Not started | - |
 | 5. Credential Vault | 0/3 | Not started | - |
 | 6. Asset Management | 0/2 | Not started | - |

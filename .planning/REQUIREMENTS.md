@@ -15,10 +15,10 @@
 
 ### User Management
 
-- [ ] **USER-01**: SUPER_ADMIN can invite a user by email and assign a role at invite time
-- [ ] **USER-02**: SUPER_ADMIN can deactivate a user account, immediately revoking all active sessions
-- [ ] **USER-03**: System enforces 4 roles: SUPER_ADMIN, Manager, Member, Viewer with RBAC on all endpoints
-- [ ] **USER-04**: User can update their own password
+- [x] **USER-01**: SUPER_ADMIN can invite a user by email and assign a role at invite time
+- [x] **USER-02**: SUPER_ADMIN can deactivate a user account, immediately revoking all active sessions
+- [x] **USER-03**: System enforces 4 roles: SUPER_ADMIN, Manager, Member, Viewer with RBAC on all endpoints
+- [x] **USER-04**: User can update their own password
 
 ### Access Control (Per-Resource ACLs)
 
@@ -111,10 +111,10 @@
 | AUTH-03 | Phase 2: Authentication | Complete |
 | AUTH-04 | Phase 2: Authentication | Complete |
 | AUTH-05 | Phase 2: Authentication | Complete |
-| USER-01 | Phase 3: User Management & RBAC | Pending |
-| USER-02 | Phase 3: User Management & RBAC | Pending |
-| USER-03 | Phase 3: User Management & RBAC | Pending |
-| USER-04 | Phase 3: User Management & RBAC | Pending |
+| USER-01 | Phase 3: User Management & RBAC | Complete |
+| USER-02 | Phase 3: User Management & RBAC | Complete |
+| USER-03 | Phase 3: User Management & RBAC | Complete |
+| USER-04 | Phase 3: User Management & RBAC | Complete |
 | ACL-01 | Phase 4: Per-Resource ACLs | Pending |
 | ACL-02 | Phase 4: Per-Resource ACLs | Pending |
 | ACL-03 | Phase 4: Per-Resource ACLs | Pending |
