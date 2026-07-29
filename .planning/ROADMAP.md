@@ -33,12 +33,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `docker compose up` starts the API and PostgreSQL with zero manual steps
   4. Prisma migrations run automatically on container startup and the full schema (all models) is applied
   5. The encryption module can encrypt and decrypt a test value using AES-256-GCM with envelope encryption, producing different ciphertext for the same plaintext on each call
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Project scaffold (npm init, dependencies, TypeScript config, Express app, health endpoints, Pino logger, Zod env config)
+- [ ] 01-02-PLAN.md — Complete Prisma schema (all 7 models, 4 enums for all 8 phases)
+- [ ] 01-03-PLAN.md — Envelope encryption module (TDD) + Docker deployment (Dockerfile, docker-compose, auto-migrations)
 
 ### Phase 2: Authentication
 **Goal**: Users can securely log in, maintain sessions, and recover access — with brute-force protection built in from day one
