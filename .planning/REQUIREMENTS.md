@@ -103,9 +103,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1: Foundation & Schema | Pending |
-| INFRA-02 | Phase 1: Foundation & Schema | Pending |
-| INFRA-03 | Phase 1: Foundation & Schema | Pending |
+| INFRA-01 | Phase 1: Foundation & Schema | Complete |
+| INFRA-02 | Phase 1: Foundation & Schema | Complete |
+| INFRA-03 | Phase 1: Foundation & Schema | Complete |
 | AUTH-01 | Phase 2: Authentication | Pending |
 | AUTH-02 | Phase 2: Authentication | Pending |
 | AUTH-03 | Phase 2: Authentication | Pending |

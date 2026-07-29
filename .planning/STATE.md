@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 1 - Foundation & Schema
+**Current focus:** Phase 2 - Authentication
 
 ## Current Position
 
-Phase: 1 of 8 (Foundation & Schema)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-07-29 — Completed 01-01-PLAN.md (Project scaffold)
+Phase: 2 of 8 (Authentication)
+Plan: 0 of 3 in current phase
+Status: Ready to plan
+Last activity: 2026-07-29 — Phase 1 complete (Foundation & Schema verified ✓)
 
-Progress: [██░░░░░░░░] ~20%
+Progress: [█░░░░░░░░░] 12.5% (1/8 phases)
 
 ## Performance Metrics
 

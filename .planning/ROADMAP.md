@@ -12,7 +12,7 @@ Kick Vault delivers a secure, encrypted REST API for credential and asset govern
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Schema** - Project scaffolding, Prisma schema, Docker, health checks, crypto module
+- [x] **Phase 1: Foundation & Schema** - Project scaffolding, Prisma schema, Docker, health checks, crypto module
 - [ ] **Phase 2: Authentication** - Login, JWT sessions, lockout, logout, password reset
 - [ ] **Phase 3: User Management & RBAC** - User invites, role enforcement, deactivation, password change
 - [ ] **Phase 4: Per-Resource ACLs** - Explicit access lists on credentials and assets, grant/revoke endpoints
@@ -36,9 +36,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold (npm init, dependencies, TypeScript config, Express app, health endpoints, Pino logger, Zod env config)
-- [ ] 01-02-PLAN.md — Complete Prisma schema (all 7 models, 4 enums for all 8 phases)
-- [ ] 01-03-PLAN.md — Envelope encryption module (TDD) + Docker deployment (Dockerfile, docker-compose, auto-migrations)
+- [x] 01-01-PLAN.md — Project scaffold (npm init, dependencies, TypeScript config, Express app, health endpoints, Pino logger, Zod env config)
+- [x] 01-02-PLAN.md — Complete Prisma schema (all 7 models, 4 enums for all 8 phases)
+- [x] 01-03-PLAN.md — Envelope encryption module (TDD) + Docker deployment (Dockerfile, docker-compose, auto-migrations)
 
 ### Phase 2: Authentication
 **Goal**: Users can securely log in, maintain sessions, and recover access — with brute-force protection built in from day one
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Schema | 2/3 | In progress | - |
+| 1. Foundation & Schema | 3/3 | Complete | 2026-07-29 |
 | 2. Authentication | 0/3 | Not started | - |
 | 3. User Management & RBAC | 0/2 | Not started | - |
 | 4. Per-Resource ACLs | 0/2 | Not started | - |
