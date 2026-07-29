@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 3 of 8 (User Management and RBAC)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-07-29 — Completed 03-01-PLAN.md (User management foundation)
+Last activity: 2026-07-29 — Completed 03-02-PLAN.md (Users module implementation)
 
-Progress: [████░░░░░░] 42% (5/12 plans)
+Progress: [█████░░░░░] 50% (6/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 4 min
-- Total execution time: 0.33 hours
+- Total execution time: 0.38 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [████░░░░░░] 42% (5/12 plans)
 |-------|-------|-------|----------|
 | 01-foundation-and-schema | 2/2 | 10 min | 5 min |
 | 02-authentication | 2/2 | 7 min | 3.5 min |
-| 03-user-management-and-rbac | 1/3 | 3 min | 3 min |
+| 03-user-management-and-rbac | 2/3 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (3 min), 02-02 (4 min), 02-01 (3 min), 01-02 (3 min), 01-01 (7 min)
+- Last 5 plans: 03-02 (3 min), 03-01 (3 min), 02-02 (4 min), 02-01 (3 min), 01-02 (3 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -62,6 +62,10 @@ Recent decisions affecting current work:
 - [02-02]: describeWithDb guard pattern for database-dependent integration tests
 - [03-01]: ForbiddenError on locked accounts carries no message -- prevents info disclosure
 - [03-01]: SUPER_ADMIN always bypasses requireRole regardless of allowedRoles list
+- [03-02]: Route order: /me/password before /:id to prevent 'me' captured as param
+- [03-02]: resendInvite guard checks mustChangePassword only (not inviteTokenExpiry)
+- [03-02]: requireRole() with no args = SUPER_ADMIN only; requireRole('MANAGER') = SUPER_ADMIN + MANAGER
+- [03-02]: Express 5 req.params returns string | string[] -- use `as string` cast for single-param routes
 
 ### Pending Todos
 
@@ -73,6 +77,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-29T20:48:00Z
-Stopped at: Completed 03-01-PLAN.md (User management foundation)
+Last session: 2026-07-29T20:58:39Z
+Stopped at: Completed 03-02-PLAN.md (Users module implementation)
 Resume file: None

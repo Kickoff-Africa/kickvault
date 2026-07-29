@@ -69,7 +69,7 @@ Plans:
 
 Plans:
 - [ ] 03-01-PLAN.md — Phase 3 infrastructure (schema migration, ConflictError, token/email helpers, requireRole middleware, loginUser mustChangePassword)
-- [ ] 03-02-PLAN.md — Users module (validation, service, controller, routes with RBAC enforcement)
+- [x] 03-02-PLAN.md — Users module (validation, service, controller, routes with RBAC enforcement)
 - [ ] 03-03-PLAN.md — Integration tests for all USER requirements (invite, deactivate, RBAC, password change)
 
 ### Phase 4: Per-Resource ACLs
