@@ -103,49 +103,49 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
-| INFRA-03 | Phase 1 | Pending |
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
-| AUTH-05 | Phase 2 | Pending |
-| USER-01 | Phase 3 | Pending |
-| USER-02 | Phase 3 | Pending |
-| USER-03 | Phase 3 | Pending |
-| USER-04 | Phase 3 | Pending |
-| ACL-01 | Phase 3 | Pending |
-| ACL-02 | Phase 3 | Pending |
-| ACL-03 | Phase 3 | Pending |
-| ACL-04 | Phase 3 | Pending |
-| CRED-01 | Phase 4 | Pending |
-| CRED-02 | Phase 4 | Pending |
-| CRED-03 | Phase 4 | Pending |
-| CRED-04 | Phase 4 | Pending |
-| CRED-05 | Phase 4 | Pending |
-| CRED-06 | Phase 4 | Pending |
-| ASSET-01 | Phase 5 | Pending |
-| ASSET-02 | Phase 5 | Pending |
-| ASSET-03 | Phase 5 | Pending |
-| ASSET-04 | Phase 5 | Pending |
-| AUDIT-01 | Phase 6 | Pending |
-| AUDIT-02 | Phase 6 | Pending |
-| AUDIT-03 | Phase 6 | Pending |
-| AUDIT-04 | Phase 6 | Pending |
-| AUDIT-05 | Phase 6 | Pending |
-| AUDIT-06 | Phase 6 | Pending |
-| DASH-01 | Phase 7 | Pending |
-| DASH-02 | Phase 7 | Pending |
-| DASH-03 | Phase 7 | Pending |
-| DASH-04 | Phase 7 | Pending |
-| DASH-05 | Phase 7 | Pending |
+| INFRA-01 | Phase 1: Foundation & Schema | Pending |
+| INFRA-02 | Phase 1: Foundation & Schema | Pending |
+| INFRA-03 | Phase 1: Foundation & Schema | Pending |
+| AUTH-01 | Phase 2: Authentication | Pending |
+| AUTH-02 | Phase 2: Authentication | Pending |
+| AUTH-03 | Phase 2: Authentication | Pending |
+| AUTH-04 | Phase 2: Authentication | Pending |
+| AUTH-05 | Phase 2: Authentication | Pending |
+| USER-01 | Phase 3: User Management & RBAC | Pending |
+| USER-02 | Phase 3: User Management & RBAC | Pending |
+| USER-03 | Phase 3: User Management & RBAC | Pending |
+| USER-04 | Phase 3: User Management & RBAC | Pending |
+| ACL-01 | Phase 4: Per-Resource ACLs | Pending |
+| ACL-02 | Phase 4: Per-Resource ACLs | Pending |
+| ACL-03 | Phase 4: Per-Resource ACLs | Pending |
+| ACL-04 | Phase 4: Per-Resource ACLs | Pending |
+| CRED-01 | Phase 5: Credential Vault | Pending |
+| CRED-02 | Phase 5: Credential Vault | Pending |
+| CRED-03 | Phase 5: Credential Vault | Pending |
+| CRED-04 | Phase 5: Credential Vault | Pending |
+| CRED-05 | Phase 5: Credential Vault | Pending |
+| CRED-06 | Phase 5: Credential Vault | Pending |
+| ASSET-01 | Phase 6: Asset Management | Pending |
+| ASSET-02 | Phase 6: Asset Management | Pending |
+| ASSET-03 | Phase 6: Asset Management | Pending |
+| ASSET-04 | Phase 6: Asset Management | Pending |
+| AUDIT-01 | Phase 7: Audit Logging | Pending |
+| AUDIT-02 | Phase 7: Audit Logging | Pending |
+| AUDIT-03 | Phase 7: Audit Logging | Pending |
+| AUDIT-04 | Phase 7: Audit Logging | Pending |
+| AUDIT-05 | Phase 7: Audit Logging | Pending |
+| AUDIT-06 | Phase 7: Audit Logging | Pending |
+| DASH-01 | Phase 8: Dashboard, Search & Hardening | Pending |
+| DASH-02 | Phase 8: Dashboard, Search & Hardening | Pending |
+| DASH-03 | Phase 8: Dashboard, Search & Hardening | Pending |
+| DASH-04 | Phase 8: Dashboard, Search & Hardening | Pending |
+| DASH-05 | Phase 8: Dashboard, Search & Hardening | Pending |
 
 **Coverage:**
 - v1 requirements: 35 total
 - Mapped to phases: 35
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-29*
-*Last updated: 2026-07-29 after initial definition*
+*Last updated: 2026-07-29 after roadmap creation*
