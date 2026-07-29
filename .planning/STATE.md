@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 2 - Authentication (complete)
+**Current focus:** Phase 3 - User Management and RBAC
 
 ## Current Position
 
-Phase: 2 of 8 (Authentication)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-07-29 — Completed 02-02-PLAN.md (Auth module endpoints)
+Phase: 3 of 8 (User Management and RBAC)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-07-29 — Completed 03-01-PLAN.md (User management foundation)
 
-Progress: [███░░░░░░░] 33% (4/12 plans)
+Progress: [████░░░░░░] 42% (5/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 4 min
-- Total execution time: 0.28 hours
+- Total execution time: 0.33 hours
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [███░░░░░░░] 33% (4/12 plans)
 |-------|-------|-------|----------|
 | 01-foundation-and-schema | 2/2 | 10 min | 5 min |
 | 02-authentication | 2/2 | 7 min | 3.5 min |
+| 03-user-management-and-rbac | 1/3 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (4 min), 02-01 (3 min), 01-02 (3 min), 01-01 (7 min)
+- Last 5 plans: 03-01 (3 min), 02-02 (4 min), 02-01 (3 min), 01-02 (3 min), 01-01 (7 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -59,6 +60,8 @@ Recent decisions affecting current work:
 - [02-02]: Module structure convention: validation.ts -> service.ts -> controller.ts -> routes.ts
 - [02-02]: Token rotation on refresh deletes old session and creates new (not update-in-place)
 - [02-02]: describeWithDb guard pattern for database-dependent integration tests
+- [03-01]: ForbiddenError on locked accounts carries no message -- prevents info disclosure
+- [03-01]: SUPER_ADMIN always bypasses requireRole regardless of allowedRoles list
 
 ### Pending Todos
 
@@ -70,6 +73,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-29T17:22:57Z
-Stopped at: Completed 02-02-PLAN.md (Auth module endpoints)
+Last session: 2026-07-29T20:48:00Z
+Stopped at: Completed 03-01-PLAN.md (User management foundation)
 Resume file: None
