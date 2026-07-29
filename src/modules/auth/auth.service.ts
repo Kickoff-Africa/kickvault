@@ -26,7 +26,7 @@ export async function loginUser(
 
   // Check if account is locked
   if (user.lockedUntil !== null && user.lockedUntil > new Date()) {
-    throw new ForbiddenError('Account is temporarily locked. Try again later.');
+    throw new ForbiddenError();
   }
 
   const valid = await verifyPassword(user.passwordHash, password);
@@ -90,6 +90,7 @@ export async function loginUser(
     accessToken,
     refreshToken,
     expiresIn: env.ACCESS_TOKEN_EXPIRY_MIN * 60,
+    mustChangePassword: user.mustChangePassword,
   };
 }
 
