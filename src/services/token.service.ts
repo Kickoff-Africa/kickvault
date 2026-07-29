@@ -52,3 +52,13 @@ export function generateResetToken(): { plainToken: string; hashedToken: string 
   const hashedToken = hashToken(plainToken);
   return { plainToken, hashedToken };
 }
+
+export function generateInviteToken(): { plainToken: string; hashedToken: string } {
+  const plainToken = crypto.randomBytes(32).toString('base64url');
+  const hashedToken = hashToken(plainToken);
+  return { plainToken, hashedToken };
+}
+
+export function generateTempPassword(): string {
+  return crypto.randomBytes(16).toString('base64url');
+}

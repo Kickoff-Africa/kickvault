@@ -12,6 +12,7 @@ export default defineConfig({
       JWT_SECRET: 'test-jwt-secret-must-be-at-least-32-characters-long',
       SMTP_FROM: 'test@kickvault.local',
       FRONTEND_URL: 'http://localhost:3000',
+      INVITE_TOKEN_EXPIRY_DAYS: '7',
     },
   },
 });

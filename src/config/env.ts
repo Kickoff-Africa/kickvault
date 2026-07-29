@@ -26,6 +26,7 @@ const envSchema = z.object({
   SMTP_PASS: z.string().default(''),
   SMTP_FROM: z.string().email().default('noreply@kickvault.local'),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+  INVITE_TOKEN_EXPIRY_DAYS: z.coerce.number().int().positive().default(7),
 });
 
 const result = envSchema.safeParse(process.env);

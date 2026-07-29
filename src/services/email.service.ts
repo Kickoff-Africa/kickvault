@@ -37,3 +37,20 @@ export async function sendPasswordResetEmail(
 
   logger.info({ to }, 'Password reset email sent');
 }
+
+export async function sendInviteEmail(
+  to: string,
+  tempPassword: string,
+): Promise<void> {
+  const loginUrl = `${env.FRONTEND_URL}/login`;
+
+  await getTransporter().sendMail({
+    from: env.SMTP_FROM,
+    to,
+    subject: 'Kick Vault - You have been invited',
+    text: `You have been invited to Kick Vault.\n\nYour temporary password: ${tempPassword}\n\nLog in at: ${loginUrl}\n\nYou will be required to change your password after your first login.`,
+    html: `<p>You have been invited to Kick Vault.</p><p>Your temporary password: <strong>${tempPassword}</strong></p><p><a href="${loginUrl}">Log in here</a></p><p>You will be required to change your password after your first login.</p>`,
+  });
+
+  logger.info({ to }, 'Invite email sent');
+}
