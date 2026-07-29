@@ -5,34 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 2 - Authentication
+**Current focus:** Phase 2 - Authentication (complete)
 
 ## Current Position
 
 Phase: 2 of 8 (Authentication)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-07-29 — Completed 02-01-PLAN.md (Auth infrastructure)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-07-29 — Completed 02-02-PLAN.md (Auth module endpoints)
 
-Progress: [██░░░░░░░░] 25% (3/12 plans)
+Progress: [███░░░░░░░] 33% (4/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 4 min
-- Total execution time: 0.22 hours
+- Total execution time: 0.28 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-and-schema | 2/2 | 10 min | 5 min |
-| 02-authentication | 1/2 | 3 min | 3 min |
+| 02-authentication | 2/2 | 7 min | 3.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3 min), 01-02 (3 min), 01-01 (7 min)
-- Trend: Accelerating
+- Last 5 plans: 02-02 (4 min), 02-01 (3 min), 01-02 (3 min), 01-01 (7 min)
+- Trend: Consistent
 
 *Updated after each plan completion*
 
@@ -55,6 +55,10 @@ Recent decisions affecting current work:
 - [02-01]: Argon2id uses reduced params in test env (memoryCost 1024 vs 19456)
 - [02-01]: Email service uses setTransporter() for mock injection in tests
 - [02-01]: prisma migrate diff requires --shadow-database-url; migration SQL written manually for simple ALTER TABLE
+- [02-02]: Thin controller pattern — Zod parse + service call + response, no business logic in controllers
+- [02-02]: Module structure convention: validation.ts -> service.ts -> controller.ts -> routes.ts
+- [02-02]: Token rotation on refresh deletes old session and creates new (not update-in-place)
+- [02-02]: describeWithDb guard pattern for database-dependent integration tests
 
 ### Pending Todos
 
@@ -66,6 +70,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-29T17:15:28Z
-Stopped at: Completed 02-01-PLAN.md (Auth infrastructure)
+Last session: 2026-07-29T17:22:57Z
+Stopped at: Completed 02-02-PLAN.md (Auth module endpoints)
 Resume file: None
