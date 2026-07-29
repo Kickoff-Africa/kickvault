@@ -65,11 +65,12 @@ Plans:
   2. SUPER_ADMIN can deactivate a user, immediately revoking all their active sessions
   3. Every endpoint enforces role-based access — a Viewer cannot call a Manager-only endpoint
   4. User can change their own password while logged in
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
+- [ ] 03-01-PLAN.md — Phase 3 infrastructure (schema migration, ConflictError, token/email helpers, requireRole middleware, loginUser mustChangePassword)
+- [ ] 03-02-PLAN.md — Users module (validation, service, controller, routes with RBAC enforcement)
+- [ ] 03-03-PLAN.md — Integration tests for all USER requirements (invite, deactivate, RBAC, password change)
 
 ### Phase 4: Per-Resource ACLs
 **Goal**: Every credential and asset has an explicit access list — users can only access resources they have been specifically granted permission to
@@ -161,7 +162,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 |-------|----------------|--------|-----------|
 | 1. Foundation & Schema | 3/3 | Complete | 2026-07-29 |
 | 2. Authentication | 2/2 | Complete | 2026-07-29 |
-| 3. User Management & RBAC | 0/2 | Not started | - |
+| 3. User Management & RBAC | 0/3 | Not started | - |
 | 4. Per-Resource ACLs | 0/2 | Not started | - |
 | 5. Credential Vault | 0/3 | Not started | - |
 | 6. Asset Management | 0/2 | Not started | - |
