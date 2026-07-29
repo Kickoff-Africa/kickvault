@@ -1,0 +1,18 @@
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import { pinoHttp } from 'pino-http';
+import { logger } from './lib/logger.js';
+import { healthRoutes } from './modules/health/health.routes.js';
+import { errorHandler } from './middleware/errorHandler.js';
+
+const app = express();
+
+app.use(helmet());
+app.use(cors());
+app.use(pinoHttp({ logger }));
+app.use(express.json());
+app.use(healthRoutes);
+app.use(errorHandler);
+
+export { app };
