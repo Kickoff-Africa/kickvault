@@ -50,12 +50,11 @@ Plans:
   3. Sessions expire after 15 minutes of inactivity and the expired token is rejected
   4. User can log out, and all their session tokens become invalid immediately
   5. User can request a password reset link via email and set a new password using the link
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Auth infrastructure (schema migration, env config, token/password/email services, authenticate middleware)
+- [ ] 02-02-PLAN.md — Auth module (login, logout, refresh, forgot-password, reset-password endpoints + integration tests)
 
 ### Phase 3: User Management & RBAC
 **Goal**: SUPER_ADMIN can manage the user population and the four-role permission system is enforced on every endpoint
@@ -161,7 +160,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Schema | 3/3 | Complete | 2026-07-29 |
-| 2. Authentication | 0/3 | Not started | - |
+| 2. Authentication | 0/2 | Not started | - |
 | 3. User Management & RBAC | 0/2 | Not started | - |
 | 4. Per-Resource ACLs | 0/2 | Not started | - |
 | 5. Credential Vault | 0/3 | Not started | - |
