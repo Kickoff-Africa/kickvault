@@ -8,7 +8,10 @@ const router = Router();
 const revealRateLimit = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
-  keyGenerator: (req) => (req as any).user?.id ?? req.ip ?? 'anonymous',
+  // Reveal sits behind authenticate, so req.user.id is always set here.
+  // Never fall back to IP — avoids express-rate-limit's IPv6 validation error.
+  keyGenerator: (req) => (req as any).user!.id as string,
+  skip: (req) => !(req as any).user?.id,
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: { error: 'Too many reveal requests, please try again later' },
