@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 6 - Asset Management (complete)
+**Current focus:** Phase 7 - Audit Logging (in progress)
 
 ## Current Position
 
-Phase: 6 of 8 (Asset Management)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-07-30 — Completed 06-02-PLAN.md (Asset integration tests)
+Phase: 7 of 8 (Audit Logging)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-07-30 — Completed 07-01-PLAN.md (Audit log immutability + credential coverage)
 
-Progress: [█████████████] 100% (13/13 plans)
+Progress: [██████████████░░] 82% (14/17 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 3 min
-- Total execution time: 0.65 hours
+- Total execution time: 0.70 hours
 
 **By Phase:**
 
@@ -33,9 +33,10 @@ Progress: [█████████████] 100% (13/13 plans)
 | 04-per-resource-acls | 2/2 | 4 min | 2 min |
 | 05-credential-vault | 2/2 | 6 min | 3 min |
 | 06-asset-management | 2/2 | 5 min | 2.5 min |
+| 07-audit-logging | 1/4 | 3 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (3 min), 06-01 (2 min), 05-02 (3 min), 05-01 (3 min), 04-02 (2 min)
+- Last 5 plans: 07-01 (3 min), 06-02 (3 min), 06-01 (2 min), 05-02 (3 min), 05-01 (3 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -89,6 +90,9 @@ Recent decisions affecting current work:
 - [06-01]: Audit logging on CREATE, UPDATE, and DELETE asset operations
 - [06-02]: Each state machine test creates its own asset to prevent state pollution
 - [06-02]: it.each used for enum category validation to cover all valid values concisely
+- [07-01]: Prisma $extends blocks auditLog update/delete at application layer; DB trigger blocks at SQL layer
+- [07-01]: Test cleanup uses TRUNCATE TABLE via basePrisma.$executeRawUnsafe to bypass both $extends and DB trigger
+- [07-01]: basePrisma exported from database.ts for test cleanup; globalForPrisma caches basePrisma (real PrismaClient)
 
 ### Pending Todos
 
@@ -100,6 +104,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T15:58:00Z
-Stopped at: Completed 06-02-PLAN.md (Asset integration tests)
+Last session: 2026-07-30T21:07:00Z
+Stopped at: Completed 07-01-PLAN.md (Audit log immutability + credential coverage)
 Resume file: None
