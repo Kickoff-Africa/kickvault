@@ -3,15 +3,12 @@ WORKDIR /app
 
 # ── Dependencies ──────────────────────────────────────────────────────────────
 FROM base AS deps
-COPY package.json package-lock.json ./
-# npm install instead of npm ci: @node-rs/argon2 has platform-specific native
-# bindings that cause npm ci to fail when the lock file was generated on a
-# different platform (e.g. macOS → Linux).
+COPY package.json ./
 RUN npm install --omit=dev
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 FROM base AS build
-COPY package.json package-lock.json ./
+COPY package.json ./
 RUN npm install
 COPY prisma ./prisma
 COPY src ./src
