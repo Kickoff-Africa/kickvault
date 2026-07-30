@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 5 - Credential Vault (in progress)
+**Current focus:** Phase 5 - Credential Vault (complete)
 
 ## Current Position
 
 Phase: 5 of 8 (Credential Vault)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-07-30 — Completed 05-01-PLAN.md (Credentials module)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-07-30 — Completed 05-02-PLAN.md (Credentials integration tests)
 
-Progress: [████████░░] 83% (10/12 plans)
+Progress: [█████████░] 92% (11/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 4 min
-- Total execution time: 0.53 hours
+- Total execution time: 0.58 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [████████░░] 83% (10/12 plans)
 | 02-authentication | 2/2 | 7 min | 3.5 min |
 | 03-user-management-and-rbac | 3/3 | 9 min | 3 min |
 | 04-per-resource-acls | 2/2 | 4 min | 2 min |
-| 05-credential-vault | 1/2 | 3 min | 3 min |
+| 05-credential-vault | 2/2 | 6 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (3 min), 04-02 (2 min), 04-01 (2 min), 03-03 (3 min), 03-02 (3 min)
+- Last 5 plans: 05-02 (3 min), 05-01 (3 min), 04-02 (2 min), 04-01 (2 min), 03-03 (3 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -80,6 +80,9 @@ Recent decisions affecting current work:
 - [05-01]: PermissionLevel enum imported from @prisma/client for type-safe ACL calls
 - [05-01]: Prisma.InputJsonValue used for audit metadata type to match Prisma Json field
 - [05-01]: credentialAccess relation name used in list where clause to match Prisma schema
+- [05-02]: Create credentials via API for reveal tests to exercise full encrypt-decrypt path
+- [05-02]: Rate limit test uses sequential requests for deterministic ordering
+- [05-02]: auditLog.deleteMany() added to FK-safe cleanup order for tests with REVEAL
 
 ### Pending Todos
 
@@ -91,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T09:02:40Z
-Stopped at: Completed 05-01-PLAN.md (Credentials module)
+Last session: 2026-07-30T09:13:41Z
+Stopped at: Completed 05-02-PLAN.md (Credentials integration tests)
 Resume file: None
