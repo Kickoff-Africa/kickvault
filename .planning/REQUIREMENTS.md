@@ -22,10 +22,10 @@
 
 ### Access Control (Per-Resource ACLs)
 
-- [ ] **ACL-01**: Each credential has an explicit access list associating users with their permission level
-- [ ] **ACL-02**: Each asset has an explicit access list associating users with their permission level
-- [ ] **ACL-03**: SUPER_ADMIN and Manager can grant or revoke user access on any credential
-- [ ] **ACL-04**: SUPER_ADMIN and Manager can grant or revoke user access on any asset
+- [x] **ACL-01**: Each credential has an explicit access list associating users with their permission level
+- [x] **ACL-02**: Each asset has an explicit access list associating users with their permission level
+- [x] **ACL-03**: SUPER_ADMIN and Manager can grant or revoke user access on any credential
+- [x] **ACL-04**: SUPER_ADMIN and Manager can grant or revoke user access on any asset
 
 ### Credential Vault
 
@@ -115,10 +115,10 @@
 | USER-02 | Phase 3: User Management & RBAC | Complete |
 | USER-03 | Phase 3: User Management & RBAC | Complete |
 | USER-04 | Phase 3: User Management & RBAC | Complete |
-| ACL-01 | Phase 4: Per-Resource ACLs | Pending |
-| ACL-02 | Phase 4: Per-Resource ACLs | Pending |
-| ACL-03 | Phase 4: Per-Resource ACLs | Pending |
-| ACL-04 | Phase 4: Per-Resource ACLs | Pending |
+| ACL-01 | Phase 4: Per-Resource ACLs | Complete |
+| ACL-02 | Phase 4: Per-Resource ACLs | Complete |
+| ACL-03 | Phase 4: Per-Resource ACLs | Complete |
+| ACL-04 | Phase 4: Per-Resource ACLs | Complete |
 | CRED-01 | Phase 5: Credential Vault | Pending |
 | CRED-02 | Phase 5: Credential Vault | Pending |
 | CRED-03 | Phase 5: Credential Vault | Pending |

@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation & Schema** - Project scaffolding, Prisma schema, Docker, health checks, crypto module
 - [x] **Phase 2: Authentication** - Login, JWT sessions, lockout, logout, password reset
 - [x] **Phase 3: User Management & RBAC** - User invites, role enforcement, deactivation, password change
-- [ ] **Phase 4: Per-Resource ACLs** - Explicit access lists on credentials and assets, grant/revoke endpoints
+- [x] **Phase 4: Per-Resource ACLs** - Explicit access lists on credentials and assets, grant/revoke endpoints
 - [ ] **Phase 5: Credential Vault** - Encrypted credential CRUD, masked responses, secure reveal, expiry tracking
 - [ ] **Phase 6: Asset Management** - Asset CRUD, categories, status state machine, access-scoped operations
 - [ ] **Phase 7: Audit Logging** - Immutable append-only audit log, cursor pagination, filtering, CSV export
@@ -85,8 +85,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 04-01-PLAN.md — ACL modules (credential-access + asset-access validation/service/controller/routes) + requireResourceAccess helper + app.ts wiring
-- [ ] 04-02-PLAN.md — Integration tests for credential-access and asset-access management endpoints
+- [x] 04-01-PLAN.md — ACL modules (credential-access + asset-access validation/service/controller/routes) + requireResourceAccess helper + app.ts wiring
+- [x] 04-02-PLAN.md — Integration tests for credential-access and asset-access management endpoints
 
 ### Phase 5: Credential Vault
 **Goal**: Authorised users can store, retrieve, edit, and delete credentials — with secrets encrypted at rest and only revealed through a controlled, rate-limited, audit-logged flow
@@ -163,7 +163,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 | 1. Foundation & Schema | 3/3 | Complete | 2026-07-29 |
 | 2. Authentication | 2/2 | Complete | 2026-07-29 |
 | 3. User Management & RBAC | 3/3 | Complete | 2026-07-29 |
-| 4. Per-Resource ACLs | 0/2 | Not started | - |
+| 4. Per-Resource ACLs | 2/2 | Complete | 2026-07-30 |
 | 5. Credential Vault | 0/3 | Not started | - |
 | 6. Asset Management | 0/2 | Not started | - |
 | 7. Audit Logging | 0/3 | Not started | - |
