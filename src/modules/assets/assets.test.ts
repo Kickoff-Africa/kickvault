@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../../app.js';
-import { prisma } from '../../config/database.js';
+import { prisma, basePrisma } from '../../config/database.js';
 import { hashPassword } from '../../services/password.service.js';
 import { signAccessToken } from '../../services/token.service.js';
 import { setTransporter } from '../../services/email.service.js';
@@ -27,7 +27,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   if (!canConnect) return;
-  await prisma.auditLog.deleteMany();
+  await basePrisma.$executeRawUnsafe('TRUNCATE TABLE "audit_logs" CASCADE');
   await prisma.assetAccess.deleteMany();
   await prisma.asset.deleteMany();
   await prisma.session.deleteMany();
@@ -36,7 +36,7 @@ beforeEach(async () => {
 
 afterAll(async () => {
   if (!canConnect) return;
-  await prisma.auditLog.deleteMany();
+  await basePrisma.$executeRawUnsafe('TRUNCATE TABLE "audit_logs" CASCADE');
   await prisma.assetAccess.deleteMany();
   await prisma.asset.deleteMany();
   await prisma.session.deleteMany();

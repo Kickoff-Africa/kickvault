@@ -36,6 +36,7 @@ export async function createCredential(data: CreateCredentialInput, createdById:
   });
   // Auto-grant MANAGE access to creator
   await grantCredentialAccess(credential.id, createdById, PermissionLevel.MANAGE);
+  await createAuditLog({ userId: createdById, action: 'CREATE', targetType: 'CREDENTIAL', targetId: credential.id });
   return credential;
 }
 
@@ -77,7 +78,7 @@ export async function updateCredential(id: string, data: UpdateCredentialInput, 
     };
   }
 
-  return prisma.credential.update({
+  const updated = await prisma.credential.update({
     where: { id },
     data: {
       ...(data.friendlyName !== undefined && { friendlyName: data.friendlyName }),
@@ -88,6 +89,8 @@ export async function updateCredential(id: string, data: UpdateCredentialInput, 
     },
     select: SAFE_CREDENTIAL_SELECT,
   });
+  await createAuditLog({ userId, action: 'UPDATE', targetType: 'CREDENTIAL', targetId: id });
+  return updated;
 }
 
 export async function deleteCredential(id: string, userId: string, userRole: string) {
@@ -98,6 +101,7 @@ export async function deleteCredential(id: string, userId: string, userRole: str
     where: { id },
     data: { deletedAt: new Date() },
   });
+  await createAuditLog({ userId, action: 'DELETE', targetType: 'CREDENTIAL', targetId: id });
 }
 
 export async function revealCredential(id: string, userId: string, userRole: string) {
