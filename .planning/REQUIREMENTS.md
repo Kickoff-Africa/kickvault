@@ -38,10 +38,10 @@
 
 ### Asset Management
 
-- [ ] **ASSET-01**: Authorised user can create an asset with Asset ID (required, unique), Name, Category, Status, and optional Location/Notes
-- [ ] **ASSET-02**: Assets have 4 categories: Hardware, Software, Digital, Intangible
-- [ ] **ASSET-03**: Asset status follows enforced transition rules: Active → Maintenance/Retired/Lost; Maintenance → Active; Lost → Active/Retired; Retired is terminal (admin override required)
-- [ ] **ASSET-04**: Authorised user can view, edit, and delete assets they have explicit access to
+- [x] **ASSET-01**: Authorised user can create an asset with Asset ID (required, unique), Name, Category, Status, and optional Location/Notes
+- [x] **ASSET-02**: Assets have 4 categories: Hardware, Software, Digital, Intangible
+- [x] **ASSET-03**: Asset status follows enforced transition rules: Active → Maintenance/Retired/Lost; Maintenance → Active; Lost → Active/Retired; Retired is terminal (admin override required)
+- [x] **ASSET-04**: Authorised user can view, edit, and delete assets they have explicit access to
 
 ### Audit Logs
 
@@ -125,10 +125,10 @@
 | CRED-04 | Phase 5: Credential Vault | Complete |
 | CRED-05 | Phase 5: Credential Vault | Complete |
 | CRED-06 | Phase 5: Credential Vault | Complete |
-| ASSET-01 | Phase 6: Asset Management | Pending |
-| ASSET-02 | Phase 6: Asset Management | Pending |
-| ASSET-03 | Phase 6: Asset Management | Pending |
-| ASSET-04 | Phase 6: Asset Management | Pending |
+| ASSET-01 | Phase 6: Asset Management | Complete |
+| ASSET-02 | Phase 6: Asset Management | Complete |
+| ASSET-03 | Phase 6: Asset Management | Complete |
+| ASSET-04 | Phase 6: Asset Management | Complete |
 | AUDIT-01 | Phase 7: Audit Logging | Pending |
 | AUDIT-02 | Phase 7: Audit Logging | Pending |
 | AUDIT-03 | Phase 7: Audit Logging | Pending |
