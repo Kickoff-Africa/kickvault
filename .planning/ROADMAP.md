@@ -82,11 +82,11 @@ Plans:
   3. SUPER_ADMIN and Manager can grant or revoke a user's access to any credential
   4. SUPER_ADMIN and Manager can grant or revoke a user's access to any asset
   5. A user without explicit access to a resource receives 403 when attempting to access it
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
+- [ ] 04-01-PLAN.md — ACL modules (credential-access + asset-access validation/service/controller/routes) + requireResourceAccess helper + app.ts wiring
+- [ ] 04-02-PLAN.md — Integration tests for credential-access and asset-access management endpoints
 
 ### Phase 5: Credential Vault
 **Goal**: Authorised users can store, retrieve, edit, and delete credentials — with secrets encrypted at rest and only revealed through a controlled, rate-limited, audit-logged flow
