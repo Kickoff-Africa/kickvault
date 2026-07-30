@@ -9,7 +9,9 @@ RUN npm install --omit=dev
 # ── Build ─────────────────────────────────────────────────────────────────────
 FROM base AS build
 COPY package.json ./
-RUN npm install
+# --include=dev ensures devDependencies (typescript, prisma CLI) are installed
+# even when Coolify injects NODE_ENV=production as a build-time ARG.
+RUN npm install --include=dev
 COPY prisma ./prisma
 COPY src ./src
 COPY tsconfig.json ./
