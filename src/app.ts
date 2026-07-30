@@ -10,6 +10,7 @@ import { credentialAccessRoutes } from './modules/credential-access/credential-a
 import { assetAccessRoutes } from './modules/asset-access/asset-access.routes.js';
 import { credentialsRoutes } from './modules/credentials/credentials.routes.js';
 import { assetsRoutes } from './modules/assets/assets.routes.js';
+import { auditLogsRoutes } from './modules/audit-logs/audit-logs.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { registerSwagger } from './lib/swagger.js';
 
@@ -26,6 +27,7 @@ app.use(credentialAccessRoutes);
 app.use(assetAccessRoutes);
 app.use(credentialsRoutes);
 app.use(assetsRoutes);
+app.use(auditLogsRoutes);
 registerSwagger(app);
 app.use(errorHandler);
 
