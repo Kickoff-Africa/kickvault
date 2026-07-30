@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 6 - Asset Management (next)
+**Current focus:** Phase 6 - Asset Management (complete)
 
 ## Current Position
 
-Phase: 5 of 8 (Credential Vault)
-Plan: 2 of 2 in current phase
+Phase: 6 of 8 (Asset Management)
+Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-07-30 — Completed 05-02-PLAN.md (Credentials integration tests)
+Last activity: 2026-07-30 — Completed 06-01-PLAN.md (Asset CRUD with state machine)
 
-Progress: [█████████░] 92% (11/12 plans)
+Progress: [██████████] 100% (12/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 4 min
-- Total execution time: 0.58 hours
+- Total plans completed: 12
+- Average duration: 3 min
+- Total execution time: 0.60 hours
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [█████████░] 92% (11/12 plans)
 | 03-user-management-and-rbac | 3/3 | 9 min | 3 min |
 | 04-per-resource-acls | 2/2 | 4 min | 2 min |
 | 05-credential-vault | 2/2 | 6 min | 3 min |
+| 06-asset-management | 1/1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (3 min), 05-01 (3 min), 04-02 (2 min), 04-01 (2 min), 03-03 (3 min)
+- Last 5 plans: 06-01 (2 min), 05-02 (3 min), 05-01 (3 min), 04-02 (2 min), 04-01 (2 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -83,6 +84,9 @@ Recent decisions affecting current work:
 - [05-02]: Create credentials via API for reveal tests to exercise full encrypt-decrypt path
 - [05-02]: Rate limit test uses sequential requests for deterministic ordering
 - [05-02]: auditLog.deleteMany() added to FK-safe cleanup order for tests with REVEAL
+- [06-01]: assetAccess relation name used in listAssets where clause (matching Prisma schema)
+- [06-01]: Status transition validation only runs when data.status is defined in update
+- [06-01]: Audit logging on CREATE, UPDATE, and DELETE asset operations
 
 ### Pending Todos
 
@@ -94,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T09:13:41Z
-Stopped at: Completed 05-02-PLAN.md (Credentials integration tests)
+Last session: 2026-07-30T15:52:18Z
+Stopped at: Completed 06-01-PLAN.md (Asset CRUD with state machine)
 Resume file: None
