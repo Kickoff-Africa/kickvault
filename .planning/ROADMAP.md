@@ -113,11 +113,11 @@ Plans:
   2. Assets enforce exactly 4 categories: Hardware, Software, Digital, Intangible
   3. Asset status transitions follow enforced rules — Retired is terminal (admin override required), invalid transitions are rejected with a clear error
   4. User can view, edit, and delete assets they have explicit access to
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
+- [ ] 06-01-PLAN.md — Asset module (validation, service with state machine, controller, routes) + app wiring
+- [ ] 06-02-PLAN.md — Integration tests for all ASSET requirements (CRUD, categories, state machine, access-scoped)
 
 ### Phase 7: Audit Logging
 **Goal**: Every security-relevant action is automatically logged and the log is provably immutable — no one, including SUPER_ADMIN, can alter history
