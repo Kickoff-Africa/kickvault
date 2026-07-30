@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 4 - Per-Resource ACLs
+**Current focus:** Phase 4 - Per-Resource ACLs (complete)
 
 ## Current Position
 
 Phase: 4 of 8 (Per-Resource ACLs)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-07-29 — Completed 04-01-PLAN.md (ACL modules and resource access helpers)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-07-29 — Completed 04-02-PLAN.md (ACL integration tests)
 
-Progress: [██████░░░░] 67% (8/12 plans)
+Progress: [███████░░░] 75% (9/12 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 4 min
-- Total execution time: 0.45 hours
+- Total execution time: 0.48 hours
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [██████░░░░] 67% (8/12 plans)
 | 01-foundation-and-schema | 2/2 | 10 min | 5 min |
 | 02-authentication | 2/2 | 7 min | 3.5 min |
 | 03-user-management-and-rbac | 3/3 | 9 min | 3 min |
-| 04-per-resource-acls | 1/2 | 2 min | 2 min |
+| 04-per-resource-acls | 2/2 | 4 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (2 min), 03-03 (3 min), 03-02 (3 min), 03-01 (3 min), 02-02 (4 min)
+- Last 5 plans: 04-02 (2 min), 04-01 (2 min), 03-03 (3 min), 03-02 (3 min), 03-01 (3 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -73,6 +73,8 @@ Recent decisions affecting current work:
 - [04-01]: Grant access uses upsert -- idempotent, updates permission if access already exists
 - [04-01]: ForbiddenError() with no message in requireResourceAccess -- consistent with RBAC pattern
 - [04-01]: Prisma P2025 error code caught on delete for clean not-found handling
+- [04-02]: FK-safe cleanup order: delete access join tables before parent credential/asset tables
+- [04-02]: Unique email prefixes per test file (creduser/assetuser) to avoid cross-file collision
 
 ### Pending Todos
 
@@ -84,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T08:15:06Z
-Stopped at: Completed 04-01-PLAN.md (ACL modules and resource access helpers)
+Last session: 2026-07-30T08:20:30Z
+Stopped at: Completed 04-02-PLAN.md (ACL integration tests) — Phase 4 complete
 Resume file: None
