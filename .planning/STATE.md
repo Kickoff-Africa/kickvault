@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 7 - Audit Logging (in progress)
+**Current focus:** Phase 8 - Dashboard (next)
 
 ## Current Position
 
 Phase: 7 of 8 (Audit Logging)
-Plan: 3 of 4 in current phase
-Status: In progress
-Last activity: 2026-07-30 — Completed 07-03-PLAN.md (Audit logs controller, routes, and app wiring)
+Plan: 4 of 4 in current phase
+Status: Phase complete
+Last activity: 2026-07-30 — Completed 07-04-PLAN.md (Audit log integration tests)
 
-Progress: [████████████████░] 94% (16/17 plans)
+Progress: [█████████████████] 100% (17/17 plans)
 
 ## Performance Metrics
 
@@ -33,10 +33,10 @@ Progress: [████████████████░] 94% (16/17 plans
 | 04-per-resource-acls | 2/2 | 4 min | 2 min |
 | 05-credential-vault | 2/2 | 6 min | 3 min |
 | 06-asset-management | 2/2 | 5 min | 2.5 min |
-| 07-audit-logging | 3/4 | 5 min | 1.7 min |
+| 07-audit-logging | 4/4 | 9 min | 2.25 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-03 (1 min), 07-02 (1 min), 07-01 (3 min), 06-02 (3 min), 06-01 (2 min)
+- Last 5 plans: 07-04 (4 min), 07-03 (1 min), 07-02 (1 min), 07-01 (3 min), 06-02 (3 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -99,6 +99,9 @@ Recent decisions affecting current work:
 - [07-03]: parseQuery helper mirrors parseBody pattern — same ZodError -> ValidationError transform, applied to req.query
 - [07-03]: requireRole() with no args = SUPER_ADMIN only for export; requireRole('MANAGER') = SUPER_ADMIN + MANAGER for list
 - [07-03]: /export route registered before any /:id routes to prevent 'export' being matched as a param
+- [07-04]: Mid-test TRUNCATE TABLE audit_logs used to isolate auto-logging assertions per credential operation
+- [07-04]: signAccessToken used directly in audit log tests (not login API) for speed and isolation
+- [07-04]: basePrisma.auditLog.findMany used to read audit entries in auto-logging tests (not via list API)
 
 ### Pending Todos
 
@@ -110,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T21:15:44Z
-Stopped at: Completed 07-03-PLAN.md (Audit logs controller, routes, and app wiring)
+Last session: 2026-07-30T22:23:00Z
+Stopped at: Completed 07-04-PLAN.md (Audit log integration tests — Phase 7 complete)
 Resume file: None
