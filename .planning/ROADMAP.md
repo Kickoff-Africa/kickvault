@@ -129,12 +129,12 @@ Plans:
   3. Audit log API returns entries cursor-paginated, newest-first
   4. Audit log endpoint supports filtering by action type, user ID, and date range
   5. SUPER_ADMIN can export audit logs as a CSV file
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
-- [ ] 07-03: TBD
+- [ ] 07-01-PLAN.md — Prisma $extends immutability enforcement + credential audit log coverage + test cleanup migration
+- [ ] 07-02-PLAN.md — Audit logs API module (validation, service, controller, routes) with cursor pagination, filtering, CSV export
+- [ ] 07-03-PLAN.md — Integration tests for all AUDIT requirements (immutability, auto-logging, pagination, filtering, CSV, RBAC)
 
 ### Phase 8: Dashboard, Search & Hardening
 **Goal**: The API provides aggregated stats, search/filter capabilities, and is hardened for production deployment
@@ -165,5 +165,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 | 4. Per-Resource ACLs | 2/2 | Complete | 2026-07-30 |
 | 5. Credential Vault | 2/2 | Complete | 2026-07-30 |
 | 6. Asset Management | 2/2 | Complete | 2026-07-30 |
-| 7. Audit Logging | 0/3 | Not started | - |
+| 7. Audit Logging | 0/3 | Planned | - |
 | 8. Dashboard, Search & Hardening | 0/2 | Not started | - |
