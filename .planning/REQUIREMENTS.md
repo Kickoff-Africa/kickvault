@@ -29,12 +29,12 @@
 
 ### Credential Vault
 
-- [ ] **CRED-01**: Authorised user can store a credential (Friendly Name, System/Host, Username, Secret) — secret encrypted with AES-256-GCM at rest
-- [ ] **CRED-02**: Server never stores, logs, or transmits plaintext secret values at any point in the request lifecycle
-- [ ] **CRED-03**: All credential API responses mask the secret field by default
-- [ ] **CRED-04**: Authorised user can reveal a credential secret via `POST /credentials/:id/reveal` — rate-limited (10/min/user), audit-logged before decryption
-- [ ] **CRED-05**: Authorised user can edit and delete credentials they have explicit access to
-- [ ] **CRED-06**: Credentials support an optional expiry date (`expiresAt`) for tracking upcoming renewals
+- [x] **CRED-01**: Authorised user can store a credential (Friendly Name, System/Host, Username, Secret) — secret encrypted with AES-256-GCM at rest
+- [x] **CRED-02**: Server never stores, logs, or transmits plaintext secret values at any point in the request lifecycle
+- [x] **CRED-03**: All credential API responses mask the secret field by default
+- [x] **CRED-04**: Authorised user can reveal a credential secret via `POST /credentials/:id/reveal` — rate-limited (10/min/user), audit-logged before decryption
+- [x] **CRED-05**: Authorised user can edit and delete credentials they have explicit access to
+- [x] **CRED-06**: Credentials support an optional expiry date (`expiresAt`) for tracking upcoming renewals
 
 ### Asset Management
 
@@ -119,12 +119,12 @@
 | ACL-02 | Phase 4: Per-Resource ACLs | Complete |
 | ACL-03 | Phase 4: Per-Resource ACLs | Complete |
 | ACL-04 | Phase 4: Per-Resource ACLs | Complete |
-| CRED-01 | Phase 5: Credential Vault | Pending |
-| CRED-02 | Phase 5: Credential Vault | Pending |
-| CRED-03 | Phase 5: Credential Vault | Pending |
-| CRED-04 | Phase 5: Credential Vault | Pending |
-| CRED-05 | Phase 5: Credential Vault | Pending |
-| CRED-06 | Phase 5: Credential Vault | Pending |
+| CRED-01 | Phase 5: Credential Vault | Complete |
+| CRED-02 | Phase 5: Credential Vault | Complete |
+| CRED-03 | Phase 5: Credential Vault | Complete |
+| CRED-04 | Phase 5: Credential Vault | Complete |
+| CRED-05 | Phase 5: Credential Vault | Complete |
+| CRED-06 | Phase 5: Credential Vault | Complete |
 | ASSET-01 | Phase 6: Asset Management | Pending |
 | ASSET-02 | Phase 6: Asset Management | Pending |
 | ASSET-03 | Phase 6: Asset Management | Pending |

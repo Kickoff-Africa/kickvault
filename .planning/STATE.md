@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 5 - Credential Vault (complete)
+**Current focus:** Phase 6 - Asset Management (next)
 
 ## Current Position
 
