@@ -98,12 +98,11 @@ Plans:
   3. Authorised user can reveal a credential secret via `POST /credentials/:id/reveal`, rate-limited to 10 requests per minute per user
   4. User can edit and delete credentials they have explicit access to
   5. Credentials support an optional `expiresAt` date for renewal tracking
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [ ] 05-03: TBD
+- [ ] 05-01-PLAN.md — Credential module (audit service, validation, service, controller, routes) + app wiring
+- [ ] 05-02-PLAN.md — Integration tests for all CRED requirements (encrypted storage, masked responses, reveal, CRUD, rate limiting)
 
 ### Phase 6: Asset Management
 **Goal**: Authorised users can manage the organisation's asset inventory with enforced categories and status transition rules
@@ -164,7 +163,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 | 2. Authentication | 2/2 | Complete | 2026-07-29 |
 | 3. User Management & RBAC | 3/3 | Complete | 2026-07-29 |
 | 4. Per-Resource ACLs | 2/2 | Complete | 2026-07-30 |
-| 5. Credential Vault | 0/3 | Not started | - |
+| 5. Credential Vault | 0/2 | Not started | - |
 | 6. Asset Management | 0/2 | Not started | - |
 | 7. Audit Logging | 0/3 | Not started | - |
 | 8. Dashboard, Search & Hardening | 0/2 | Not started | - |
