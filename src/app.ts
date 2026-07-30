@@ -10,10 +10,11 @@ import { credentialAccessRoutes } from './modules/credential-access/credential-a
 import { assetAccessRoutes } from './modules/asset-access/asset-access.routes.js';
 import { credentialsRoutes } from './modules/credentials/credentials.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { registerSwagger } from './lib/swagger.js';
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false })); // CSP disabled so Swagger UI loads
 app.use(cors());
 app.use(pinoHttp({ logger }));
 app.use(express.json());
@@ -23,6 +24,7 @@ app.use(userRoutes);
 app.use(credentialAccessRoutes);
 app.use(assetAccessRoutes);
 app.use(credentialsRoutes);
+registerSwagger(app);
 app.use(errorHandler);
 
 export { app };
