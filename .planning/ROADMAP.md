@@ -147,11 +147,12 @@ Plans:
   3. Credentials can be searched by Friendly Name and System/Host, and filtered by expiry window
   4. Assets can be searched by Name and Asset ID
   5. API responses complete within 2 seconds under normal load, search responses within 500ms
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Dashboard module (stats counts, recent activity feed, MANAGER+ auth)
+- [ ] 08-02-PLAN.md — Search & filter on credentials (search, expiry) and assets (search)
+- [ ] 08-03-PLAN.md — Integration tests for all DASH requirements
 
 ## Progress
 
@@ -167,4 +168,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 | 5. Credential Vault | 2/2 | Complete | 2026-07-30 |
 | 6. Asset Management | 2/2 | Complete | 2026-07-30 |
 | 7. Audit Logging | 4/4 | Complete | 2026-07-30 |
-| 8. Dashboard, Search & Hardening | 0/2 | Not started | - |
+| 8. Dashboard, Search & Hardening | 0/3 | Not started | - |
