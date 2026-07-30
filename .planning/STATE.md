@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-07-29)
 ## Current Position
 
 Phase: 7 of 8 (Audit Logging)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In progress
-Last activity: 2026-07-30 — Completed 07-02-PLAN.md (Audit logs validation and service)
+Last activity: 2026-07-30 — Completed 07-03-PLAN.md (Audit logs controller, routes, and app wiring)
 
-Progress: [███████████████░] 88% (15/17 plans)
+Progress: [████████████████░] 94% (16/17 plans)
 
 ## Performance Metrics
 
@@ -33,10 +33,10 @@ Progress: [███████████████░] 88% (15/17 plans)
 | 04-per-resource-acls | 2/2 | 4 min | 2 min |
 | 05-credential-vault | 2/2 | 6 min | 3 min |
 | 06-asset-management | 2/2 | 5 min | 2.5 min |
-| 07-audit-logging | 2/4 | 4 min | 2 min |
+| 07-audit-logging | 3/4 | 5 min | 1.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-02 (1 min), 07-01 (3 min), 06-02 (3 min), 06-01 (2 min), 05-02 (3 min)
+- Last 5 plans: 07-03 (1 min), 07-02 (1 min), 07-01 (3 min), 06-02 (3 min), 06-01 (2 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -96,6 +96,9 @@ Recent decisions affecting current work:
 - [07-02]: Cursor pagination uses take+1 to determine hasMore without separate count query
 - [07-02]: CSV export capped at 10,000 rows to prevent memory issues
 - [07-02]: escapeCsv handles commas, double-quotes, and newlines per RFC 4180
+- [07-03]: parseQuery helper mirrors parseBody pattern — same ZodError -> ValidationError transform, applied to req.query
+- [07-03]: requireRole() with no args = SUPER_ADMIN only for export; requireRole('MANAGER') = SUPER_ADMIN + MANAGER for list
+- [07-03]: /export route registered before any /:id routes to prevent 'export' being matched as a param
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T21:10:00Z
-Stopped at: Completed 07-02-PLAN.md (Audit logs validation and service)
+Last session: 2026-07-30T21:15:44Z
+Stopped at: Completed 07-03-PLAN.md (Audit logs controller, routes, and app wiring)
 Resume file: None
