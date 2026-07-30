@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Per-Resource ACLs** - Explicit access lists on credentials and assets, grant/revoke endpoints
 - [x] **Phase 5: Credential Vault** - Encrypted credential CRUD, masked responses, secure reveal, expiry tracking
 - [x] **Phase 6: Asset Management** - Asset CRUD, categories, status state machine, access-scoped operations
-- [ ] **Phase 7: Audit Logging** - Immutable append-only audit log, cursor pagination, filtering, CSV export
+- [x] **Phase 7: Audit Logging** - Immutable append-only audit log, cursor pagination, filtering, CSV export
 - [ ] **Phase 8: Dashboard, Search & Hardening** - Stats aggregation, search/filter endpoints, production hardening
 
 ## Phase Details
@@ -129,7 +129,7 @@ Plans:
   3. Audit log API returns entries cursor-paginated, newest-first
   4. Audit log endpoint supports filtering by action type, user ID, and date range
   5. SUPER_ADMIN can export audit logs as a CSV file
-**Plans**: 4 plans in 3 waves
+**Plans**: 4 plans in 4 waves
 
 Plans:
 - [ ] 07-01-PLAN.md — Prisma $extends immutability enforcement + DB trigger verification + credential audit log coverage + test cleanup migration
@@ -166,5 +166,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 & 6 (parallel possible) -
 | 4. Per-Resource ACLs | 2/2 | Complete | 2026-07-30 |
 | 5. Credential Vault | 2/2 | Complete | 2026-07-30 |
 | 6. Asset Management | 2/2 | Complete | 2026-07-30 |
-| 7. Audit Logging | 0/4 | Planned | - |
+| 7. Audit Logging | 4/4 | Complete | 2026-07-30 |
 | 8. Dashboard, Search & Hardening | 0/2 | Not started | - |

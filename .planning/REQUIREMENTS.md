@@ -45,12 +45,12 @@
 
 ### Audit Logs
 
-- [ ] **AUDIT-01**: All REVEAL, CREATE, EDIT, DELETE actions on credentials and assets are auto-logged server-side with User ID, action type, target type, target ID, and timestamp
-- [ ] **AUDIT-02**: Audit log entries are immutable — no user (including SUPER_ADMIN) can modify or delete any entry
-- [ ] **AUDIT-03**: Audit log immutability is enforced at both application layer (Prisma middleware) and database layer (PostgreSQL trigger rejecting UPDATE/DELETE on audit_logs)
-- [ ] **AUDIT-04**: Audit log API returns entries cursor-paginated, newest-first
-- [ ] **AUDIT-05**: Audit log endpoint supports filtering by action type, user ID, and date range
-- [ ] **AUDIT-06**: SUPER_ADMIN can export audit logs as a CSV file
+- [x] **AUDIT-01**: All REVEAL, CREATE, EDIT, DELETE actions on credentials and assets are auto-logged server-side with User ID, action type, target type, target ID, and timestamp
+- [x] **AUDIT-02**: Audit log entries are immutable — no user (including SUPER_ADMIN) can modify or delete any entry
+- [x] **AUDIT-03**: Audit log immutability is enforced at both application layer (Prisma middleware) and database layer (PostgreSQL trigger rejecting UPDATE/DELETE on audit_logs)
+- [x] **AUDIT-04**: Audit log API returns entries cursor-paginated, newest-first
+- [x] **AUDIT-05**: Audit log endpoint supports filtering by action type, user ID, and date range
+- [x] **AUDIT-06**: SUPER_ADMIN can export audit logs as a CSV file
 
 ### Dashboard & Search
 
@@ -129,12 +129,12 @@
 | ASSET-02 | Phase 6: Asset Management | Complete |
 | ASSET-03 | Phase 6: Asset Management | Complete |
 | ASSET-04 | Phase 6: Asset Management | Complete |
-| AUDIT-01 | Phase 7: Audit Logging | Pending |
-| AUDIT-02 | Phase 7: Audit Logging | Pending |
-| AUDIT-03 | Phase 7: Audit Logging | Pending |
-| AUDIT-04 | Phase 7: Audit Logging | Pending |
-| AUDIT-05 | Phase 7: Audit Logging | Pending |
-| AUDIT-06 | Phase 7: Audit Logging | Pending |
+| AUDIT-01 | Phase 7: Audit Logging | Complete |
+| AUDIT-02 | Phase 7: Audit Logging | Complete |
+| AUDIT-03 | Phase 7: Audit Logging | Complete |
+| AUDIT-04 | Phase 7: Audit Logging | Complete |
+| AUDIT-05 | Phase 7: Audit Logging | Complete |
+| AUDIT-06 | Phase 7: Audit Logging | Complete |
 | DASH-01 | Phase 8: Dashboard, Search & Hardening | Pending |
 | DASH-02 | Phase 8: Dashboard, Search & Hardening | Pending |
 | DASH-03 | Phase 8: Dashboard, Search & Hardening | Pending |
