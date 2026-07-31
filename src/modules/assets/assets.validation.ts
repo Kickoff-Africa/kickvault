@@ -22,3 +22,8 @@ export const updateAssetSchema = z.object({
 
 export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 export type UpdateAssetInput = z.infer<typeof updateAssetSchema>;
+
+export const listAssetsQuerySchema = z.object({
+  search: z.string().max(255).optional(),
+});
+export type ListAssetsQuery = z.infer<typeof listAssetsQuerySchema>;

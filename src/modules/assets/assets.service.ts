@@ -1,10 +1,10 @@
-import { PermissionLevel } from '@prisma/client';
+import { PermissionLevel, Prisma } from '@prisma/client';
 import { prisma } from '../../config/database.js';
 import { checkAssetAccess } from '../../middleware/requireResourceAccess.js';
 import { grantAssetAccess } from '../asset-access/asset-access.service.js';
 import { createAuditLog } from '../../services/audit.service.js';
 import { NotFoundError, ValidationError, ConflictError } from '../../lib/errors.js';
-import type { CreateAssetInput, UpdateAssetInput } from './assets.validation.js';
+import type { CreateAssetInput, UpdateAssetInput, ListAssetsQuery } from './assets.validation.js';
 
 const SAFE_ASSET_SELECT = {
   id: true,
@@ -83,13 +83,22 @@ export async function createAsset(data: CreateAssetInput, createdById: string) {
   return asset;
 }
 
-export async function listAssets(userId: string, userRole: string) {
+export async function listAssets(userId: string, userRole: string, query?: ListAssetsQuery) {
   const isPrivileged = userRole === 'SUPER_ADMIN' || userRole === 'MANAGER';
-  const whereClause = isPrivileged
-    ? { deletedAt: null }
-    : { deletedAt: null, assetAccess: { some: { userId } } };
+  const where: Prisma.AssetWhereInput = {
+    deletedAt: null,
+    ...(!isPrivileged && { assetAccess: { some: { userId } } }),
+  };
+
+  if (query?.search) {
+    where.OR = [
+      { name: { contains: query.search, mode: 'insensitive' } },
+      { assetId: { contains: query.search, mode: 'insensitive' } },
+    ];
+  }
+
   return prisma.asset.findMany({
-    where: whereClause,
+    where,
     select: SAFE_ASSET_SELECT,
     orderBy: { createdAt: 'desc' },
   });

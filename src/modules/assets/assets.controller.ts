@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { createAssetSchema, updateAssetSchema } from './assets.validation.js';
+import { createAssetSchema, updateAssetSchema, listAssetsQuerySchema } from './assets.validation.js';
 import {
   createAsset,
   listAssets,
@@ -21,6 +21,14 @@ function parseBody<T>(schema: { parse: (data: unknown) => T }, body: unknown): T
   }
 }
 
+function parseQuery<T>(schema: { parse: (data: unknown) => T }, query: unknown): T {
+  try { return schema.parse(query); }
+  catch (err) {
+    if (err instanceof ZodError) throw new ValidationError(err.issues[0].message);
+    throw err;
+  }
+}
+
 export async function create(req: Request, res: Response): Promise<void> {
   const body = parseBody(createAssetSchema, req.body);
   const asset = await createAsset(body, req.user!.id);
@@ -28,7 +36,8 @@ export async function create(req: Request, res: Response): Promise<void> {
 }
 
 export async function list(req: Request, res: Response): Promise<void> {
-  const assets = await listAssets(req.user!.id, req.user!.role as string);
+  const query = parseQuery(listAssetsQuerySchema, req.query);
+  const assets = await listAssets(req.user!.id, req.user!.role as string, query);
   res.json({ assets });
 }
 
