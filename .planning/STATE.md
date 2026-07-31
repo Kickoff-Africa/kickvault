@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-07-29)
 
 **Core value:** Every credential is encrypted at rest, accessible only to authorised users, and every access is logged immutably — replacing zero accountability with total traceability.
-**Current focus:** Phase 8 - Dashboard (next)
+**Current focus:** Phase 8 - Dashboard, Search & Hardening (in progress)
 
 ## Current Position
 
-Phase: 7 of 8 (Audit Logging)
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-07-30 — Completed 07-04-PLAN.md (Audit log integration tests)
+Phase: 8 of 8 (Dashboard, Search & Hardening)
+Plan: 1 of N in current phase
+Status: In progress
+Last activity: 2026-07-30 — Completed 08-01-PLAN.md (Dashboard stats endpoint)
 
-Progress: [█████████████████] 100% (17/17 plans)
+Progress: [█████████████████░] (18/18+ plans, 08-01 complete)
 
 ## Performance Metrics
 
@@ -34,6 +34,7 @@ Progress: [█████████████████] 100% (17/17 plan
 | 05-credential-vault | 2/2 | 6 min | 3 min |
 | 06-asset-management | 2/2 | 5 min | 2.5 min |
 | 07-audit-logging | 4/4 | 9 min | 2.25 min |
+| 08-dashboard-search-and-hardening | 1/? | 2 min | 2 min |
 
 **Recent Trend:**
 - Last 5 plans: 07-04 (4 min), 07-03 (1 min), 07-02 (1 min), 07-01 (3 min), 06-02 (3 min)
@@ -102,6 +103,9 @@ Recent decisions affecting current work:
 - [07-04]: Mid-test TRUNCATE TABLE audit_logs used to isolate auto-logging assertions per credential operation
 - [07-04]: signAccessToken used directly in audit log tests (not login API) for speed and isolation
 - [07-04]: basePrisma.auditLog.findMany used to read audit entries in auto-logging tests (not via list API)
+- [08-01]: Expiring credential count uses gte: now AND lte: cutoff to exclude already-expired credentials
+- [08-01]: Dashboard service uses Promise.all with 4 parallel Prisma queries — asset count, credential count, expiring count, audit log findMany
+- [08-01]: parseQuery helper copied verbatim from audit-logs.controller — consistent ZodError -> ValidationError transform for query-param endpoints
 
 ### Pending Todos
 
@@ -113,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-30T22:23:00Z
-Stopped at: Completed 07-04-PLAN.md (Audit log integration tests — Phase 7 complete)
+Last session: 2026-07-31T02:47:30Z
+Stopped at: Completed 08-01-PLAN.md (Dashboard stats endpoint)
 Resume file: None
