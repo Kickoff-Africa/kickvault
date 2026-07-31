@@ -11,6 +11,7 @@ import { assetAccessRoutes } from './modules/asset-access/asset-access.routes.js
 import { credentialsRoutes } from './modules/credentials/credentials.routes.js';
 import { assetsRoutes } from './modules/assets/assets.routes.js';
 import { auditLogsRoutes } from './modules/audit-logs/audit-logs.routes.js';
+import { dashboardRoutes } from './modules/dashboard/dashboard.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { registerSwagger } from './lib/swagger.js';
 
@@ -28,6 +29,7 @@ app.use(assetAccessRoutes);
 app.use(credentialsRoutes);
 app.use(assetsRoutes);
 app.use(auditLogsRoutes);
+app.use(dashboardRoutes);
 registerSwagger(app);
 app.use(errorHandler);
 
