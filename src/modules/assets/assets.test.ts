@@ -649,3 +649,96 @@ describeWithDb('ASSET-03: Status state machine', () => {
     expect(res.body.asset.status).toBe('RETIRED');
   });
 });
+
+// --- DASH-04: Asset search --------------------------------------------------
+
+describeWithDb('DASH-04: Asset search by name and assetId', () => {
+  it('?search= matches assets by name (case-insensitive)', async () => {
+    const admin = await createTestUser('SUPER_ADMIN');
+    const token = await getAuthToken(admin);
+
+    await createTestAsset(admin.id, { assetId: `SRCH-NAME-1-${Date.now()}`, name: 'Production Server' });
+    await createTestAsset(admin.id, { assetId: `SRCH-NAME-2-${Date.now()}`, name: 'Staging Laptop' });
+
+    const res = await request(app)
+      .get('/api/assets?search=PRODUCTION')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.assets.length).toBe(1);
+    expect(res.body.assets[0].name).toBe('Production Server');
+  });
+
+  it('?search= matches assets by assetId (case-insensitive)', async () => {
+    const admin = await createTestUser('SUPER_ADMIN');
+    const token = await getAuthToken(admin);
+
+    const uniqueId = `SRCH-ASSETID-${Date.now()}`;
+    await createTestAsset(admin.id, { assetId: uniqueId, name: 'AssetId Search Test' });
+    await createTestAsset(admin.id, { assetId: `OTHER-ID-${Date.now()}`, name: 'Other Asset' });
+
+    const searchTerm = uniqueId.toLowerCase();
+
+    const res = await request(app)
+      .get(`/api/assets?search=${searchTerm}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.assets.length).toBe(1);
+    expect(res.body.assets[0].assetId).toBe(uniqueId);
+  });
+
+  it('?search=nonexistent returns empty array', async () => {
+    const admin = await createTestUser('SUPER_ADMIN');
+    const token = await getAuthToken(admin);
+
+    await createTestAsset(admin.id, { assetId: `SRCH-NONE-${Date.now()}`, name: 'Something Else' });
+
+    const res = await request(app)
+      .get('/api/assets?search=zzz-no-match-zzz')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.assets).toHaveLength(0);
+  });
+
+  it('no search param returns all accessible assets (backward compatible)', async () => {
+    const admin = await createTestUser('SUPER_ADMIN');
+    const token = await getAuthToken(admin);
+
+    await createTestAsset(admin.id, { assetId: `SRCH-ALL-1-${Date.now()}`, name: 'Asset A' });
+    await createTestAsset(admin.id, { assetId: `SRCH-ALL-2-${Date.now()}`, name: 'Asset B' });
+
+    const res = await request(app)
+      .get('/api/assets')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.assets.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('search respects access control — non-privileged users only see accessible assets', async () => {
+    const admin = await createTestUser('SUPER_ADMIN');
+    const member = await createTestUser('MEMBER');
+    const memberToken = await getAuthToken(member);
+
+    const accessibleAsset = await createTestAsset(admin.id, {
+      assetId: `SRCH-ACL-1-${Date.now()}`,
+      name: 'Accessible Production Asset',
+    });
+    await createTestAsset(admin.id, {
+      assetId: `SRCH-ACL-2-${Date.now()}`,
+      name: 'Inaccessible Production Asset',
+    });
+
+    await grantAccess(accessibleAsset.id, member.id, 'VIEW');
+
+    const res = await request(app)
+      .get('/api/assets?search=production')
+      .set('Authorization', `Bearer ${memberToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.assets.length).toBe(1);
+    expect(res.body.assets[0].id).toBe(accessibleAsset.id);
+  });
+});

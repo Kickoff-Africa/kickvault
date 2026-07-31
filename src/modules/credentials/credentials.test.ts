@@ -549,3 +549,180 @@ describeWithDb('CRED-04: Reveal with rate limiting and audit log', () => {
     expect(res.status).toBe(429);
   });
 });
+
+// --- DASH-03: Credential search ---------------------------------------------
+
+describeWithDb('DASH-03: Credential search by friendlyName and systemHost', () => {
+  it('?search= matches credentials by friendlyName (case-insensitive)', async () => {
+    const admin = await createSuperAdmin('search-admin1@test.com');
+    const token = await getAuthToken(admin);
+
+    await createTestCredential(admin.id, { friendlyName: 'Production DB Password' });
+    await createTestCredential(admin.id, { friendlyName: 'Staging API Key' });
+
+    const res = await request(app)
+      .get('/api/credentials?search=PRODUCTION')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials.length).toBe(1);
+    expect(res.body.credentials[0].friendlyName).toBe('Production DB Password');
+  });
+
+  it('?search= matches credentials by systemHost (case-insensitive)', async () => {
+    const admin = await createSuperAdmin('search-admin2@test.com');
+    const token = await getAuthToken(admin);
+
+    const encrypted = encrypt('s3cret');
+    await basePrisma.credential.create({
+      data: {
+        friendlyName: 'Host Search Cred',
+        systemHost: 'db.MyCompany.com',
+        username: 'admin',
+        encryptedValue: encrypted.encryptedValue,
+        iv: encrypted.iv,
+        authTag: encrypted.authTag,
+        keyVersion: encrypted.keyVersion,
+        createdById: admin.id,
+      },
+    });
+    await createTestCredential(admin.id, { friendlyName: 'Other Cred' });
+
+    const res = await request(app)
+      .get('/api/credentials?search=mycompany')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials.length).toBe(1);
+    expect(res.body.credentials[0].systemHost).toBe('db.MyCompany.com');
+  });
+
+  it('?search=nonexistent returns empty array', async () => {
+    const admin = await createSuperAdmin('search-admin3@test.com');
+    const token = await getAuthToken(admin);
+
+    await createTestCredential(admin.id, { friendlyName: 'Something Else' });
+
+    const res = await request(app)
+      .get('/api/credentials?search=zzz-no-match-zzz')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials).toHaveLength(0);
+  });
+
+  it('no search param returns all accessible credentials (backward compatible)', async () => {
+    const admin = await createSuperAdmin('search-admin4@test.com');
+    const token = await getAuthToken(admin);
+
+    await createTestCredential(admin.id, { friendlyName: 'Cred A' });
+    await createTestCredential(admin.id, { friendlyName: 'Cred B' });
+
+    const res = await request(app)
+      .get('/api/credentials')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('search respects access control — non-privileged users only see accessible credentials', async () => {
+    const admin = await createSuperAdmin('search-admin5@test.com');
+    const member = await createTestUser({ email: 'search-member@test.com' });
+    const memberToken = await getAuthToken(member);
+
+    const accessibleCred = await createTestCredential(admin.id, { friendlyName: 'Accessible Prod Cred' });
+    await createTestCredential(admin.id, { friendlyName: 'Inaccessible Prod Cred' });
+
+    await grantAccess(accessibleCred.id, member.id, 'VIEW');
+
+    const res = await request(app)
+      .get('/api/credentials?search=prod')
+      .set('Authorization', `Bearer ${memberToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials.length).toBe(1);
+    expect(res.body.credentials[0].id).toBe(accessibleCred.id);
+  });
+});
+
+// --- DASH-05: Credential expiry filter --------------------------------------
+
+describeWithDb('DASH-05: Credential expiry filter (?expiring_within)', () => {
+  it('?expiring_within=30d returns only credentials expiring within 30 days', async () => {
+    const admin = await createSuperAdmin('expiry-admin1@test.com');
+    const token = await getAuthToken(admin);
+
+    const now = new Date();
+
+    // Expires in 10 days — should be included
+    const in10Days = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+    const includedCred = await createTestCredential(admin.id, { friendlyName: 'Expiring Soon', expiresAt: in10Days });
+
+    // Expires in 60 days — should be excluded
+    const in60Days = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+    await createTestCredential(admin.id, { friendlyName: 'Expiring Later', expiresAt: in60Days });
+
+    const res = await request(app)
+      .get('/api/credentials?expiring_within=30d')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials.length).toBe(1);
+    expect(res.body.credentials[0].id).toBe(includedCred.id);
+  });
+
+  it('already-expired credentials are excluded from expiring_within results', async () => {
+    const admin = await createSuperAdmin('expiry-admin2@test.com');
+    const token = await getAuthToken(admin);
+
+    const now = new Date();
+
+    // Expired yesterday — should be excluded (gte: now)
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    await createTestCredential(admin.id, { friendlyName: 'Already Expired', expiresAt: yesterday });
+
+    // Expires in 10 days — should be included
+    const in10Days = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000);
+    await createTestCredential(admin.id, { friendlyName: 'Expiring Soon', expiresAt: in10Days });
+
+    const res = await request(app)
+      .get('/api/credentials?expiring_within=30d')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials.length).toBe(1);
+    expect(res.body.credentials[0].friendlyName).toBe('Expiring Soon');
+  });
+
+  it('credentials with no expiresAt are excluded from expiring_within results', async () => {
+    const admin = await createSuperAdmin('expiry-admin3@test.com');
+    const token = await getAuthToken(admin);
+
+    // No expiresAt — should be excluded
+    await createTestCredential(admin.id, { friendlyName: 'No Expiry' });
+
+    // Expires in 10 days — should be included
+    const in10Days = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+    await createTestCredential(admin.id, { friendlyName: 'Has Expiry', expiresAt: in10Days });
+
+    const res = await request(app)
+      .get('/api/credentials?expiring_within=30d')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.credentials.length).toBe(1);
+    expect(res.body.credentials[0].friendlyName).toBe('Has Expiry');
+  });
+
+  it('invalid format ?expiring_within=abc returns 400', async () => {
+    const admin = await createSuperAdmin('expiry-admin4@test.com');
+    const token = await getAuthToken(admin);
+
+    const res = await request(app)
+      .get('/api/credentials?expiring_within=abc')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(400);
+  });
+});
