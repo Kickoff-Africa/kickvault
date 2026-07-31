@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { ZodError } from 'zod';
-import { createCredentialSchema, updateCredentialSchema } from './credentials.validation.js';
+import { createCredentialSchema, updateCredentialSchema, listCredentialsQuerySchema } from './credentials.validation.js';
 import {
   createCredential,
   listCredentials,
@@ -22,6 +22,14 @@ function parseBody<T>(schema: { parse: (data: unknown) => T }, body: unknown): T
   }
 }
 
+function parseQuery<T>(schema: { parse: (data: unknown) => T }, query: unknown): T {
+  try { return schema.parse(query); }
+  catch (err) {
+    if (err instanceof ZodError) throw new ValidationError(err.issues[0].message);
+    throw err;
+  }
+}
+
 export async function create(req: Request, res: Response): Promise<void> {
   const body = parseBody(createCredentialSchema, req.body);
   const credential = await createCredential(body, req.user!.id);
@@ -29,7 +37,8 @@ export async function create(req: Request, res: Response): Promise<void> {
 }
 
 export async function list(req: Request, res: Response): Promise<void> {
-  const credentials = await listCredentials(req.user!.id, req.user!.role as string);
+  const query = parseQuery(listCredentialsQuerySchema, req.query);
+  const credentials = await listCredentials(req.user!.id, req.user!.role as string, query);
   res.json({ credentials });
 }
 

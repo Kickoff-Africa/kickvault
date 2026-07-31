@@ -1,11 +1,11 @@
-import { PermissionLevel } from '@prisma/client';
+import { PermissionLevel, Prisma } from '@prisma/client';
 import { prisma } from '../../config/database.js';
 import { encrypt, decrypt } from '../../lib/crypto.js';
 import { checkCredentialAccess } from '../../middleware/requireResourceAccess.js';
 import { grantCredentialAccess } from '../credential-access/credential-access.service.js';
 import { createAuditLog } from '../../services/audit.service.js';
 import { NotFoundError } from '../../lib/errors.js';
-import type { CreateCredentialInput, UpdateCredentialInput } from './credentials.validation.js';
+import type { CreateCredentialInput, UpdateCredentialInput, ListCredentialsQuery } from './credentials.validation.js';
 
 const SAFE_CREDENTIAL_SELECT = {
   id: true,
@@ -40,13 +40,29 @@ export async function createCredential(data: CreateCredentialInput, createdById:
   return credential;
 }
 
-export async function listCredentials(userId: string, userRole: string) {
+export async function listCredentials(userId: string, userRole: string, query?: ListCredentialsQuery) {
   const isPrivileged = userRole === 'SUPER_ADMIN' || userRole === 'MANAGER';
-  const whereClause = isPrivileged
-    ? { deletedAt: null }
-    : { deletedAt: null, credentialAccess: { some: { userId } } };
+  const where: Prisma.CredentialWhereInput = {
+    deletedAt: null,
+    ...(!isPrivileged && { credentialAccess: { some: { userId } } }),
+  };
+
+  if (query?.search) {
+    where.OR = [
+      { friendlyName: { contains: query.search, mode: 'insensitive' } },
+      { systemHost: { contains: query.search, mode: 'insensitive' } },
+    ];
+  }
+
+  if (query?.expiring_within) {
+    const days = parseInt(query.expiring_within.replace('d', ''), 10);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + days);
+    where.expiresAt = { lte: cutoff, gte: new Date() };
+  }
+
   return prisma.credential.findMany({
-    where: whereClause,
+    where,
     select: SAFE_CREDENTIAL_SELECT,
     orderBy: { createdAt: 'desc' },
   });

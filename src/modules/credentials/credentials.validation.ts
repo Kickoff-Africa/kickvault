@@ -21,3 +21,9 @@ export const updateCredentialSchema = z.object({
 
 export type CreateCredentialInput = z.infer<typeof createCredentialSchema>;
 export type UpdateCredentialInput = z.infer<typeof updateCredentialSchema>;
+
+export const listCredentialsQuerySchema = z.object({
+  search: z.string().max(255).optional(),
+  expiring_within: z.string().regex(/^\d+d$/, 'Must be in format like "30d"').optional(),
+});
+export type ListCredentialsQuery = z.infer<typeof listCredentialsQuerySchema>;
