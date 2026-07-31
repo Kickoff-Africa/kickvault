@@ -54,11 +54,11 @@
 
 ### Dashboard & Search
 
-- [ ] **DASH-01**: Dashboard stats endpoint returns total assets count, total credentials count, and expiring-soon count (configurable threshold, default 30 days)
-- [ ] **DASH-02**: Dashboard endpoint returns recent audit activity feed (last 10 events)
-- [ ] **DASH-03**: Credentials endpoint supports search by Friendly Name and System/Host (PostgreSQL ILIKE)
-- [ ] **DASH-04**: Assets endpoint supports search by Name and Asset ID (PostgreSQL ILIKE)
-- [ ] **DASH-05**: Credentials endpoint supports filtering by expiry window (`?expiring_within=30d`)
+- [x] **DASH-01**: Dashboard stats endpoint returns total assets count, total credentials count, and expiring-soon count (configurable threshold, default 30 days)
+- [x] **DASH-02**: Dashboard endpoint returns recent audit activity feed (last 10 events)
+- [x] **DASH-03**: Credentials endpoint supports search by Friendly Name and System/Host (PostgreSQL ILIKE)
+- [x] **DASH-04**: Assets endpoint supports search by Name and Asset ID (PostgreSQL ILIKE)
+- [x] **DASH-05**: Credentials endpoint supports filtering by expiry window (`?expiring_within=30d`)
 
 ### Infrastructure
 
@@ -135,11 +135,11 @@
 | AUDIT-04 | Phase 7: Audit Logging | Complete |
 | AUDIT-05 | Phase 7: Audit Logging | Complete |
 | AUDIT-06 | Phase 7: Audit Logging | Complete |
-| DASH-01 | Phase 8: Dashboard, Search & Hardening | Pending |
-| DASH-02 | Phase 8: Dashboard, Search & Hardening | Pending |
-| DASH-03 | Phase 8: Dashboard, Search & Hardening | Pending |
-| DASH-04 | Phase 8: Dashboard, Search & Hardening | Pending |
-| DASH-05 | Phase 8: Dashboard, Search & Hardening | Pending |
+| DASH-01 | Phase 8: Dashboard, Search & Hardening | Complete |
+| DASH-02 | Phase 8: Dashboard, Search & Hardening | Complete |
+| DASH-03 | Phase 8: Dashboard, Search & Hardening | Complete |
+| DASH-04 | Phase 8: Dashboard, Search & Hardening | Complete |
+| DASH-05 | Phase 8: Dashboard, Search & Hardening | Complete |
 
 **Coverage:**
 - v1 requirements: 35 total
