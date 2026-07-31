@@ -85,6 +85,39 @@ const spec = {
           mustChangePassword: { type: 'boolean' },
         },
       },
+      Asset: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: 'cuid789' },
+          assetId: { type: 'string', example: 'ASSET-001' },
+          name: { type: 'string', example: 'MacBook Pro 16"' },
+          category: { type: 'string', enum: ['Hardware', 'Software', 'Digital', 'Intangible'], example: 'Hardware' },
+          status: { type: 'string', enum: ['ACTIVE', 'MAINTENANCE', 'RETIRED', 'LOST'], example: 'ACTIVE' },
+          location: { type: 'string', nullable: true, example: 'London Office, Desk 12' },
+          notes: { type: 'string', nullable: true, example: 'Assigned to engineering team' },
+          createdById: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+      AuditEntry: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          action: { type: 'string', enum: ['CREATE', 'UPDATE', 'DELETE', 'REVEAL'] },
+          targetType: { type: 'string', enum: ['CREDENTIAL', 'ASSET'] },
+          targetId: { type: 'string' },
+          createdAt: { type: 'string', format: 'date-time' },
+          user: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              email: { type: 'string', format: 'email' },
+              name: { type: 'string' },
+            },
+          },
+        },
+      },
     },
     responses: {
       Unauthorized: {
@@ -116,7 +149,10 @@ const spec = {
     { name: 'Users', description: 'User management and RBAC' },
     { name: 'Credentials', description: 'Encrypted credential vault' },
     { name: 'Credential Access', description: 'Per-credential ACL management' },
+    { name: 'Assets', description: 'Asset inventory management' },
     { name: 'Asset Access', description: 'Per-asset ACL management' },
+    { name: 'Audit Logs', description: 'Immutable audit trail — append-only, export as CSV' },
+    { name: 'Dashboard', description: 'Aggregated stats and recent activity feed' },
   ],
   paths: {
     // ── Health ────────────────────────────────────────────────────────────────
@@ -499,6 +535,16 @@ const spec = {
         tags: ['Credentials'],
         summary: 'List credentials accessible to the caller',
         description: 'SUPER_ADMIN and MANAGER see all credentials. Other roles see only credentials they have been granted access to.',
+        parameters: [
+          {
+            in: 'query', name: 'search', schema: { type: 'string', maxLength: 255 },
+            description: 'Case-insensitive search on Friendly Name and System/Host',
+          },
+          {
+            in: 'query', name: 'expiring_within', schema: { type: 'string', pattern: '^\\d+d$', example: '30d' },
+            description: 'Filter to credentials expiring within N days (e.g. "30d"). Excludes already-expired.',
+          },
+        ],
         responses: {
           200: {
             description: 'Credential list (secret field never included)',
@@ -513,6 +559,7 @@ const spec = {
               },
             },
           },
+          400: { $ref: '#/components/responses/BadRequest' },
           401: { $ref: '#/components/responses/Unauthorized' },
         },
       },
@@ -754,6 +801,265 @@ const spec = {
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
           404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
+
+    // ── Assets ────────────────────────────────────────────────────────────────
+    '/assets': {
+      post: {
+        tags: ['Assets'],
+        summary: 'Create an asset',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['assetId', 'name', 'category'],
+                properties: {
+                  assetId: { type: 'string', example: 'ASSET-001', description: 'Unique asset identifier' },
+                  name: { type: 'string', minLength: 1, maxLength: 255, example: 'MacBook Pro 16"' },
+                  category: { type: 'string', enum: ['Hardware', 'Software', 'Digital', 'Intangible'] },
+                  status: { type: 'string', enum: ['ACTIVE', 'MAINTENANCE', 'RETIRED', 'LOST'], default: 'ACTIVE' },
+                  location: { type: 'string', maxLength: 255, example: 'London Office' },
+                  notes: { type: 'string', maxLength: 1000 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Asset created',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { asset: { $ref: '#/components/schemas/Asset' } } },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          409: { $ref: '#/components/responses/Conflict' },
+        },
+      },
+      get: {
+        tags: ['Assets'],
+        summary: 'List assets accessible to the caller',
+        description: 'SUPER_ADMIN and MANAGER see all assets. Other roles see only assets they have been granted access to.',
+        parameters: [
+          {
+            in: 'query', name: 'search', schema: { type: 'string', maxLength: 255 },
+            description: 'Case-insensitive search on Name and Asset ID',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Asset list',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { assets: { type: 'array', items: { $ref: '#/components/schemas/Asset' } } },
+                },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/assets/{id}': {
+      get: {
+        tags: ['Assets'],
+        summary: 'Get a single asset (VIEW permission required)',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+        responses: {
+          200: {
+            description: 'Asset',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { asset: { $ref: '#/components/schemas/Asset' } } },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+      patch: {
+        tags: ['Assets'],
+        summary: 'Update an asset (EDIT permission required)',
+        description: 'Status transitions are enforced: RETIRED is terminal unless performed by SUPER_ADMIN.',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                description: 'At least one field required.',
+                properties: {
+                  name: { type: 'string', minLength: 1, maxLength: 255 },
+                  category: { type: 'string', enum: ['Hardware', 'Software', 'Digital', 'Intangible'] },
+                  status: { type: 'string', enum: ['ACTIVE', 'MAINTENANCE', 'RETIRED', 'LOST'] },
+                  location: { type: 'string', nullable: true },
+                  notes: { type: 'string', nullable: true },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Asset updated',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { asset: { $ref: '#/components/schemas/Asset' } } },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+      delete: {
+        tags: ['Assets'],
+        summary: 'Soft-delete an asset (MANAGE permission required)',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+        responses: {
+          204: { description: 'Deleted' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+        },
+      },
+    },
+
+    // ── Audit Logs ────────────────────────────────────────────────────────────
+    '/audit-logs': {
+      get: {
+        tags: ['Audit Logs'],
+        summary: 'List audit log entries cursor-paginated, newest-first (MANAGER+)',
+        parameters: [
+          {
+            in: 'query', name: 'cursor', schema: { type: 'string' },
+            description: 'Cursor from a previous response\'s `nextCursor` field for pagination',
+          },
+          {
+            in: 'query', name: 'limit', schema: { type: 'integer', minimum: 1, maximum: 100, default: 50 },
+            description: 'Number of entries per page',
+          },
+          {
+            in: 'query', name: 'action',
+            schema: { type: 'string', enum: ['CREATE', 'UPDATE', 'DELETE', 'REVEAL'] },
+            description: 'Filter by action type',
+          },
+          {
+            in: 'query', name: 'userId', schema: { type: 'string' },
+            description: 'Filter by user ID',
+          },
+          {
+            in: 'query', name: 'startDate', schema: { type: 'string', format: 'date-time' },
+            description: 'Filter entries on or after this timestamp (ISO 8601)',
+          },
+          {
+            in: 'query', name: 'endDate', schema: { type: 'string', format: 'date-time' },
+            description: 'Filter entries on or before this timestamp (ISO 8601)',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Paginated audit log entries',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    items: { type: 'array', items: { $ref: '#/components/schemas/AuditEntry' } },
+                    nextCursor: { type: 'string', nullable: true, description: 'Pass as `cursor` for next page' },
+                    hasMore: { type: 'boolean' },
+                  },
+                },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+    '/audit-logs/export': {
+      get: {
+        tags: ['Audit Logs'],
+        summary: 'Export audit logs as CSV (SUPER_ADMIN only)',
+        description: 'Supports the same filters as the list endpoint. Capped at 10,000 rows.',
+        parameters: [
+          {
+            in: 'query', name: 'action',
+            schema: { type: 'string', enum: ['CREATE', 'UPDATE', 'DELETE', 'REVEAL'] },
+          },
+          { in: 'query', name: 'userId', schema: { type: 'string' } },
+          { in: 'query', name: 'startDate', schema: { type: 'string', format: 'date-time' } },
+          { in: 'query', name: 'endDate', schema: { type: 'string', format: 'date-time' } },
+        ],
+        responses: {
+          200: {
+            description: 'CSV file download',
+            headers: {
+              'Content-Disposition': {
+                schema: { type: 'string', example: 'attachment; filename="audit-logs.csv"' },
+              },
+            },
+            content: { 'text/csv': { schema: { type: 'string' } } },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+
+    // ── Dashboard ─────────────────────────────────────────────────────────────
+    '/dashboard/stats': {
+      get: {
+        tags: ['Dashboard'],
+        summary: 'Aggregated stats and recent activity feed (MANAGER+)',
+        parameters: [
+          {
+            in: 'query', name: 'expiring_threshold',
+            schema: { type: 'integer', minimum: 1, maximum: 365, default: 30 },
+            description: 'Days threshold for the expiring-soon credential count',
+          },
+        ],
+        responses: {
+          200: {
+            description: 'Dashboard stats',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    totalAssets: { type: 'integer', example: 42 },
+                    totalCredentials: { type: 'integer', example: 156 },
+                    expiringCredentials: { type: 'integer', example: 7, description: 'Credentials expiring within the threshold window (excludes already-expired)' },
+                    recentActivity: {
+                      type: 'array',
+                      maxItems: 10,
+                      description: 'The 10 most recent audit log entries, newest-first',
+                      items: { $ref: '#/components/schemas/AuditEntry' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
         },
       },
     },
