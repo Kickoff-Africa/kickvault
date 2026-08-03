@@ -6,6 +6,19 @@ import { createAuditLog } from '../../services/audit.service.js';
 import { NotFoundError, ValidationError, ConflictError } from '../../lib/errors.js';
 import type { CreateAssetInput, UpdateAssetInput, ListAssetsQuery } from './assets.validation.js';
 
+const CATEGORY_PREFIX: Record<string, string> = {
+  HARDWARE: 'HW',
+  SOFTWARE: 'SW',
+  DIGITAL: 'DG',
+  INTANGIBLE: 'IN',
+};
+
+function generateAssetId(category: string): string {
+  const prefix = CATEGORY_PREFIX[category] ?? 'XX';
+  const digits = Math.floor(10000 + Math.random() * 90000); // 10000–99999
+  return `${prefix}-${digits}`;
+}
+
 const SAFE_ASSET_SELECT = {
   id: true,
   assetId: true,
@@ -45,30 +58,36 @@ export function validateStatusTransition(
 
 export async function createAsset(data: CreateAssetInput, createdById: string) {
   let asset;
-  try {
-    asset = await prisma.asset.create({
-      data: {
-        assetId: data.assetId,
-        name: data.name,
-        category: data.category,
-        status: data.status,
-        location: data.location,
-        notes: data.notes,
-        createdById,
-      },
-      select: SAFE_ASSET_SELECT,
-    });
-  } catch (err: unknown) {
-    if (
-      typeof err === 'object' &&
-      err !== null &&
-      'code' in err &&
-      (err as { code: string }).code === 'P2002'
-    ) {
-      throw new ConflictError('Asset ID already exists');
+  const MAX_ATTEMPTS = 5;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const assetId = generateAssetId(data.category);
+    try {
+      asset = await prisma.asset.create({
+        data: {
+          assetId,
+          name: data.name,
+          category: data.category,
+          status: data.status,
+          location: data.location,
+          notes: data.notes,
+          createdById,
+        },
+        select: SAFE_ASSET_SELECT,
+      });
+      break;
+    } catch (err: unknown) {
+      const isUniqueViolation =
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code: string }).code === 'P2002';
+      if (isUniqueViolation && attempt < MAX_ATTEMPTS) continue;
+      if (isUniqueViolation) throw new ConflictError('Could not generate a unique Asset ID, please try again');
+      throw err;
     }
-    throw err;
   }
+
+  if (!asset) throw new ConflictError('Could not generate a unique Asset ID, please try again');
 
   // Auto-grant MANAGE access to creator
   await grantAssetAccess(asset.id, createdById, PermissionLevel.MANAGE);

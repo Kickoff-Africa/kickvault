@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 export const createAssetSchema = z.object({
-  assetId: z.string().min(1).max(100),
   name: z.string().min(1).max(255),
   category: z.enum(['HARDWARE', 'SOFTWARE', 'DIGITAL', 'INTANGIBLE']),
   status: z.enum(['ACTIVE', 'MAINTENANCE', 'RETIRED', 'LOST']).optional(),

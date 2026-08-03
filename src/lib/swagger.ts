@@ -89,7 +89,7 @@ const spec = {
         type: 'object',
         properties: {
           id: { type: 'string', example: 'cuid789' },
-          assetId: { type: 'string', example: 'ASSET-001' },
+          assetId: { type: 'string', example: 'HW-48291', description: 'Auto-generated: HW/SW/DG/IN prefix + 5 random digits' },
           name: { type: 'string', example: 'MacBook Pro 16"' },
           category: { type: 'string', enum: ['Hardware', 'Software', 'Digital', 'Intangible'], example: 'Hardware' },
           status: { type: 'string', enum: ['ACTIVE', 'MAINTENANCE', 'RETIRED', 'LOST'], example: 'ACTIVE' },
@@ -842,20 +842,20 @@ const spec = {
       post: {
         tags: ['Assets'],
         summary: 'Create an asset',
+        description: 'Asset ID is auto-generated based on category: HW-XXXXX (Hardware), SW-XXXXX (Software), DG-XXXXX (Digital), IN-XXXXX (Intangible).',
         requestBody: {
           required: true,
           content: {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['assetId', 'name', 'category'],
+                required: ['name', 'category'],
                 properties: {
-                  assetId: { type: 'string', example: 'ASSET-001', description: 'Unique asset identifier' },
                   name: { type: 'string', minLength: 1, maxLength: 255, example: 'MacBook Pro 16"' },
-                  category: { type: 'string', enum: ['Hardware', 'Software', 'Digital', 'Intangible'] },
+                  category: { type: 'string', enum: ['HARDWARE', 'SOFTWARE', 'DIGITAL', 'INTANGIBLE'] },
                   status: { type: 'string', enum: ['ACTIVE', 'MAINTENANCE', 'RETIRED', 'LOST'], default: 'ACTIVE' },
-                  location: { type: 'string', maxLength: 255, example: 'London Office' },
-                  notes: { type: 'string', maxLength: 1000 },
+                  location: { type: 'string', maxLength: 500, example: 'London Office' },
+                  notes: { type: 'string', maxLength: 2000 },
                 },
               },
             },
