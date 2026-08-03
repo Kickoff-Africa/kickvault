@@ -5,6 +5,7 @@ import {
   refreshSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  registerSchema,
 } from './auth.validation.js';
 import {
   loginUser,
@@ -12,6 +13,7 @@ import {
   refreshSession,
   requestPasswordReset,
   resetPassword as resetPasswordService,
+  registerUser,
 } from './auth.service.js';
 import { ValidationError } from '../../lib/errors.js';
 
@@ -60,4 +62,16 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
   const { token, password } = parseBody(resetPasswordSchema, req.body);
   await resetPasswordService(token, password);
   res.status(200).json({ message: 'Password has been reset. Please log in.' });
+}
+
+export async function register(req: Request, res: Response): Promise<void> {
+  const { email, name, password } = parseBody(registerSchema, req.body);
+  const result = await registerUser(
+    email,
+    name,
+    password,
+    req.headers['user-agent'] as string | undefined,
+    req.ip,
+  );
+  res.status(201).json(result);
 }

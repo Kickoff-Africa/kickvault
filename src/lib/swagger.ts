@@ -192,6 +192,38 @@ const spec = {
     },
 
     // ── Auth ──────────────────────────────────────────────────────────────────
+    '/auth/register': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Self-register a new account',
+        description: 'Open registration. If `ALLOWED_EMAIL_DOMAIN` is configured on the server, only emails matching that domain are accepted. New accounts are assigned the MEMBER role.',
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email', 'name', 'password'],
+                properties: {
+                  email: { type: 'string', format: 'email', example: 'jane@kickoff.africa' },
+                  name: { type: 'string', minLength: 1, maxLength: 100, example: 'Jane Smith' },
+                  password: { type: 'string', minLength: 12, example: 'MyP@ssword123' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          201: {
+            description: 'Account created — tokens returned, logged in immediately',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Tokens' } } },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          409: { $ref: '#/components/responses/Conflict' },
+        },
+      },
+    },
     '/auth/login': {
       post: {
         tags: ['Auth'],

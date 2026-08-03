@@ -8,7 +8,7 @@ import { verifyPassword, hashPassword } from '../../services/password.service.js
 import { sendPasswordResetEmail } from '../../services/email.service.js';
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
-import { UnauthorizedError, ForbiddenError } from '../../lib/errors.js';
+import { UnauthorizedError, ForbiddenError, ConflictError } from '../../lib/errors.js';
 
 export async function loginUser(
   email: string,
@@ -186,6 +186,51 @@ export async function requestPasswordReset(email: string): Promise<void> {
   });
 
   await sendPasswordResetEmail(email, plainToken);
+}
+
+export async function registerUser(
+  email: string,
+  name: string,
+  password: string,
+  userAgent?: string,
+  ipAddress?: string,
+) {
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  if (existing) {
+    throw new ConflictError('An account with this email already exists');
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  const user = await prisma.user.create({
+    data: { email, name, passwordHash, role: 'MEMBER', isActive: true },
+  });
+
+  const refreshToken = generateRefreshToken();
+  const hashedRefreshToken = hashToken(refreshToken);
+
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      refreshToken: hashedRefreshToken,
+      expiresAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60_000),
+      lastActiveAt: new Date(),
+      userAgent: userAgent ?? null,
+      ipAddress: ipAddress ?? null,
+    },
+  });
+
+  const accessToken = await signAccessToken({
+    userId: user.id,
+    role: user.role,
+    sessionId: session.id,
+  });
+
+  return { accessToken, refreshToken, expiresIn: env.ACCESS_TOKEN_EXPIRY_MIN * 60, mustChangePassword: false };
 }
 
 export async function resetPassword(
