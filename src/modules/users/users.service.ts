@@ -26,6 +26,22 @@ const SAFE_USER_SELECT = {
   updatedAt: true,
 } as const;
 
+const PROFILE_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  phone: true,
+  department: true,
+  location: true,
+  bio: true,
+  role: true,
+  isActive: true,
+  mustChangePassword: true,
+  lastLoginAt: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
+
 async function assertNotLastSuperAdmin(excludeUserId: string): Promise<void> {
   const count = await prisma.user.count({
     where: {
@@ -219,6 +235,29 @@ export async function deactivateUser(
   ]);
 
   return updated;
+}
+
+export async function getMyProfile(userId: string) {
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: PROFILE_SELECT,
+  });
+  if (!user) throw new NotFoundError('User not found');
+  return user;
+}
+
+export async function updateMyProfile(
+  userId: string,
+  data: { name?: string; phone?: string | null; department?: string | null; location?: string | null; bio?: string | null },
+) {
+  const user = await prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
+  if (!user) throw new NotFoundError('User not found');
+
+  return prisma.user.update({
+    where: { id: userId },
+    data,
+    select: PROFILE_SELECT,
+  });
 }
 
 export async function changeOwnPassword(

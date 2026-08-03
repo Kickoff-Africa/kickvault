@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 import {
   inviteUserSchema,
   updateUserSchema,
+  updateProfileSchema,
   changePasswordSchema,
   listUsersSchema,
 } from './users.validation.js';
@@ -14,6 +15,8 @@ import {
   updateUser,
   deactivateUser,
   changeOwnPassword,
+  getMyProfile,
+  updateMyProfile,
 } from './users.service.js';
 import { ValidationError } from '../../lib/errors.js';
 
@@ -59,6 +62,17 @@ export async function deactivate(req: Request, res: Response): Promise<void> {
 export async function resendInvite(req: Request, res: Response): Promise<void> {
   const user = await resendInviteService(req.params.id as string, req.user!.id);
   res.status(200).json({ user });
+}
+
+export async function getProfile(req: Request, res: Response): Promise<void> {
+  const user = await getMyProfile(req.user!.id);
+  res.json({ user });
+}
+
+export async function updateProfile(req: Request, res: Response): Promise<void> {
+  const body = parseBody(updateProfileSchema, req.body);
+  const user = await updateMyProfile(req.user!.id, body);
+  res.json({ user });
 }
 
 export async function changePassword(req: Request, res: Response): Promise<void> {

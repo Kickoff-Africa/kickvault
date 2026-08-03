@@ -47,6 +47,24 @@ const spec = {
           updatedAt: { type: 'string', format: 'date-time' },
         },
       },
+      Profile: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', example: 'cuid123' },
+          email: { type: 'string', format: 'email', example: 'user@example.com' },
+          name: { type: 'string', example: 'Jane Smith' },
+          phone: { type: 'string', nullable: true, example: '+234 801 234 5678' },
+          department: { type: 'string', nullable: true, example: 'Engineering' },
+          location: { type: 'string', nullable: true, example: 'Lagos, Nigeria' },
+          bio: { type: 'string', nullable: true, example: 'Full-stack engineer passionate about security.' },
+          role: { $ref: '#/components/schemas/Role' },
+          isActive: { type: 'boolean', example: true },
+          mustChangePassword: { type: 'boolean', example: false },
+          lastLoginAt: { type: 'string', format: 'date-time', nullable: true },
+          createdAt: { type: 'string', format: 'date-time' },
+          updatedAt: { type: 'string', format: 'date-time' },
+        },
+      },
       Credential: {
         type: 'object',
         properties: {
@@ -348,6 +366,57 @@ const spec = {
     },
 
     // ── Users ─────────────────────────────────────────────────────────────────
+    '/users/me': {
+      get: {
+        tags: ['Users'],
+        summary: 'Get your own profile',
+        responses: {
+          200: {
+            description: 'Your profile',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { user: { $ref: '#/components/schemas/Profile' } } },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+      patch: {
+        tags: ['Users'],
+        summary: 'Update your own profile',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                description: 'At least one field required. Set nullable fields to null to clear them.',
+                properties: {
+                  name: { type: 'string', minLength: 1, maxLength: 100, example: 'Jane Smith' },
+                  phone: { type: 'string', maxLength: 30, nullable: true, example: '+234 801 234 5678' },
+                  department: { type: 'string', maxLength: 100, nullable: true, example: 'Engineering' },
+                  location: { type: 'string', maxLength: 255, nullable: true, example: 'Lagos, Nigeria' },
+                  bio: { type: 'string', maxLength: 1000, nullable: true, example: 'Full-stack engineer.' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Profile updated',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { user: { $ref: '#/components/schemas/Profile' } } },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
     '/users/invite': {
       post: {
         tags: ['Users'],
