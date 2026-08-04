@@ -366,6 +366,47 @@ const spec = {
     },
 
     // ── Users ─────────────────────────────────────────────────────────────────
+    '/users/me/avatar': {
+      post: {
+        tags: ['Users'],
+        summary: 'Upload or replace your profile picture',
+        description: 'Accepts JPEG, PNG, or WebP up to 5 MB. Image is cropped to 400×400, face-centred, and stored on Cloudinary.',
+        requestBody: {
+          required: true,
+          content: {
+            'multipart/form-data': {
+              schema: {
+                type: 'object',
+                required: ['avatar'],
+                properties: {
+                  avatar: { type: 'string', format: 'binary' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Avatar uploaded — updated profile returned',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { user: { $ref: '#/components/schemas/Profile' } } },
+              },
+            },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+      delete: {
+        tags: ['Users'],
+        summary: 'Remove your profile picture',
+        responses: {
+          204: { description: 'Avatar removed' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
     '/users/me': {
       get: {
         tags: ['Users'],

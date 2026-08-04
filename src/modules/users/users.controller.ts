@@ -17,6 +17,8 @@ import {
   changeOwnPassword,
   getMyProfile,
   updateMyProfile,
+  uploadUserAvatar,
+  deleteUserAvatar,
 } from './users.service.js';
 import { ValidationError } from '../../lib/errors.js';
 
@@ -73,6 +75,17 @@ export async function updateProfile(req: Request, res: Response): Promise<void> 
   const body = parseBody(updateProfileSchema, req.body);
   const user = await updateMyProfile(req.user!.id, body);
   res.json({ user });
+}
+
+export async function uploadAvatar(req: Request, res: Response): Promise<void> {
+  if (!req.file) throw new ValidationError('No file uploaded');
+  const user = await uploadUserAvatar(req.user!.id, req.file.buffer);
+  res.json({ user });
+}
+
+export async function removeAvatar(req: Request, res: Response): Promise<void> {
+  await deleteUserAvatar(req.user!.id);
+  res.status(204).end();
 }
 
 export async function changePassword(req: Request, res: Response): Promise<void> {

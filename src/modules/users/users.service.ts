@@ -1,5 +1,6 @@
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
+import { uploadAvatar, deleteAvatar } from '../../lib/cloudinary.js';
 import { hashPassword, verifyPassword } from '../../services/password.service.js';
 import {
   generateTempPassword,
@@ -34,6 +35,7 @@ const PROFILE_SELECT = {
   department: true,
   location: true,
   bio: true,
+  avatarUrl: true,
   role: true,
   isActive: true,
   mustChangePassword: true,
@@ -257,6 +259,37 @@ export async function updateMyProfile(
     where: { id: userId },
     data,
     select: PROFILE_SELECT,
+  });
+}
+
+export async function uploadUserAvatar(userId: string, buffer: Buffer) {
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: { id: true, avatarPublicId: true },
+  });
+  if (!user) throw new NotFoundError('User not found');
+
+  const { url, publicId } = await uploadAvatar(buffer, userId, user.avatarPublicId);
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: { avatarUrl: url, avatarPublicId: publicId },
+    select: PROFILE_SELECT,
+  });
+}
+
+export async function deleteUserAvatar(userId: string) {
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: { id: true, avatarPublicId: true },
+  });
+  if (!user) throw new NotFoundError('User not found');
+  if (!user.avatarPublicId) return;
+
+  await deleteAvatar(user.avatarPublicId);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { avatarUrl: null, avatarPublicId: null },
   });
 }
 

@@ -31,6 +31,9 @@ const envSchema = z.object({
   SEED_ADMIN_NAME: z.string().default('Super Admin'),
   SEED_ADMIN_PASSWORD: z.string().min(12).optional(),
   ALLOWED_EMAIL_DOMAIN: z.string().optional(), // e.g. "kickoff.africa" — if set, only this domain can self-register
+  CLOUDINARY_CLOUD_NAME: z.string().min(1),
+  CLOUDINARY_API_KEY: z.string().min(1),
+  CLOUDINARY_API_SECRET: z.string().min(1),
 });
 
 const result = envSchema.safeParse(process.env);
