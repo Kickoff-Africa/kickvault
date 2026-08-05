@@ -32,8 +32,8 @@ export async function authenticate(
     req.user = { id: payload.sub, role: payload.role };
     req.sessionId = payload.sessionId;
 
-    // Block all actions until password is changed
-    if (payload.mustChangePassword) {
+    // Block all actions until password is changed (SUPER_ADMIN is exempt)
+    if (payload.mustChangePassword && payload.role !== 'SUPER_ADMIN') {
       const routeKey = `${req.method} ${req.path}`;
       if (!ALLOWED_WHEN_MUST_CHANGE.has(routeKey)) {
         throw new ForbiddenError('You must change your password before continuing.');
