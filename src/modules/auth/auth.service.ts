@@ -9,6 +9,7 @@ import { sendPasswordResetEmail } from '../../services/email.service.js';
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
 import { UnauthorizedError, ForbiddenError, ConflictError } from '../../lib/errors.js';
+import { logger } from '../../lib/logger.js';
 
 export async function loginUser(
   email: string,
@@ -192,7 +193,9 @@ export async function requestPasswordReset(email: string): Promise<void> {
     },
   });
 
-  await sendPasswordResetEmail(email, plainToken);
+  sendPasswordResetEmail(email, plainToken).catch((err) => {
+    logger.error({ err, email }, 'Failed to send password reset email');
+  });
 }
 
 export async function registerUser(

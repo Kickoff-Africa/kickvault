@@ -1,5 +1,6 @@
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
+import { logger } from '../../lib/logger.js';
 import { uploadAvatar, deleteAvatar } from '../../lib/cloudinary.js';
 import { signAccessToken, generateRefreshToken, hashToken } from '../../services/token.service.js';
 import { hashPassword, verifyPassword } from '../../services/password.service.js';
@@ -94,7 +95,9 @@ export async function inviteUser(
     select: SAFE_USER_SELECT,
   });
 
-  await sendInviteEmail(email, tempPassword);
+  sendInviteEmail(email, tempPassword).catch((err) => {
+    logger.error({ err, email }, 'Failed to send invite email');
+  });
 
   return user;
 }
@@ -130,7 +133,9 @@ export async function resendInvite(userId: string, requestedByUserId: string) {
     select: SAFE_USER_SELECT,
   });
 
-  await sendInviteEmail(user.email, tempPassword);
+  sendInviteEmail(user.email, tempPassword).catch((err) => {
+    logger.error({ err, email: user.email }, 'Failed to resend invite email');
+  });
 
   return updated;
 }
