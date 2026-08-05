@@ -26,11 +26,16 @@ export async function loginUser(
     throw new UnauthorizedError('Invalid credentials');
   }
 
-  if (!user.isActive && !user.emailVerifiedAt) {
-    throw new UnauthorizedError('Please verify your email address before logging in.');
-  }
-
   if (!user.isActive) {
+    if (user.inviteTokenHash) {
+      // Invited user — hasn't accepted invite yet
+      throw new UnauthorizedError('Your account is pending. Please check your email to accept the invitation.');
+    }
+    if (!user.emailVerifiedAt) {
+      // Self-registered — hasn't verified email yet
+      throw new UnauthorizedError('Please verify your email address before logging in.');
+    }
+    // Deactivated by admin
     throw new UnauthorizedError('Invalid credentials');
   }
 
@@ -69,12 +74,18 @@ export async function loginUser(
   }
 
   // Success: reset failed attempts, update last login
+  // If this is an invited user logging in for the first time, activate them
   await prisma.user.update({
     where: { id: user.id },
     data: {
       failedAttempts: 0,
       lockedUntil: null,
       lastLoginAt: new Date(),
+      ...(user.inviteTokenHash && {
+        isActive: true,
+        inviteTokenHash: null,
+        inviteTokenExpiry: null,
+      }),
     },
   });
 

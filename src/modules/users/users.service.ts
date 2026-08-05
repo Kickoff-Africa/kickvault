@@ -88,6 +88,7 @@ export async function inviteUser(
       name,
       role,
       passwordHash,
+      isActive: false, // inactive until they accept the invite and set their password
       mustChangePassword: true,
       inviteTokenHash,
       inviteTokenExpiry,
@@ -111,8 +112,8 @@ export async function resendInvite(userId: string, requestedByUserId: string) {
     throw new NotFoundError('User not found');
   }
 
-  if (!user.mustChangePassword) {
-    throw new ConflictError('User is already active and has logged in');
+  if (!user.inviteTokenHash) {
+    throw new ConflictError('User has already accepted their invitation');
   }
 
   const tempPassword = generateTempPassword();
