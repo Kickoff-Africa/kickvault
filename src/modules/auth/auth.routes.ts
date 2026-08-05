@@ -5,6 +5,8 @@ import { authenticate } from '../../middleware/authenticate.js';
 const router = Router();
 
 router.post('/api/auth/register', authController.register);
+router.post('/api/auth/verify-email', authController.verifyEmailHandler);
+router.post('/api/auth/resend-verification', authController.resendVerificationHandler);
 router.post('/api/auth/login', authController.login);
 router.post('/api/auth/logout', authenticate, authController.logout);
 router.post('/api/auth/refresh', authController.refresh);

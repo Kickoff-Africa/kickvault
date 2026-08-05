@@ -18,6 +18,14 @@ export const resetPasswordSchema = z.object({
   password: z.string().min(12, 'Password must be at least 12 characters'),
 });
 
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email(),
+});
+
 import { env } from '../../config/env.js';
 
 export const registerSchema = z.object({
@@ -36,6 +44,8 @@ export const registerSchema = z.object({
   password: z.string().min(12, 'Password must be at least 12 characters'),
 });
 
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;

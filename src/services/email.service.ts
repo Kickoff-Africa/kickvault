@@ -10,12 +10,12 @@ export function setTransporter(mock: Transporter): void {
 
 export function getTransporter(): Transporter {
   if (!transporter) {
+    const pass = env.SMTP_API_KEY || env.SMTP_PASS;
     transporter = nodemailer.createTransport({
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
-      auth: env.SMTP_USER
-        ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
-        : undefined,
+      secure: env.SMTP_PORT === 465, // TLS for port 465, STARTTLS for others
+      auth: env.SMTP_USER ? { user: env.SMTP_USER, pass } : undefined,
     });
   }
   return transporter;
@@ -36,6 +36,23 @@ export async function sendPasswordResetEmail(
   });
 
   logger.info({ to }, 'Password reset email sent');
+}
+
+export async function sendVerificationEmail(
+  to: string,
+  verifyToken: string,
+): Promise<void> {
+  const verifyUrl = `${env.FRONTEND_URL}/verify-email?token=${verifyToken}`;
+
+  await getTransporter().sendMail({
+    from: env.SMTP_FROM,
+    to,
+    subject: 'Kick Vault - Verify your email address',
+    text: `Welcome to Kick Vault!\n\nPlease verify your email address by clicking the link below:\n${verifyUrl}\n\nThis link expires in ${env.EMAIL_VERIFY_EXPIRY_MIN} minutes.\n\nIf you did not create an account, ignore this email.`,
+    html: `<p>Welcome to Kick Vault!</p><p>Please verify your email address:</p><p><a href="${verifyUrl}">Verify email address</a></p><p>This link expires in ${env.EMAIL_VERIFY_EXPIRY_MIN} minutes.</p><p>If you did not create an account, ignore this email.</p>`,
+  });
+
+  logger.info({ to }, 'Verification email sent');
 }
 
 export async function sendInviteEmail(

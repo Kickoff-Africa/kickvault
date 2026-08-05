@@ -5,7 +5,7 @@ import {
   hashToken,
 } from '../../services/token.service.js';
 import { verifyPassword, hashPassword } from '../../services/password.service.js';
-import { sendPasswordResetEmail } from '../../services/email.service.js';
+import { sendPasswordResetEmail, sendVerificationEmail } from '../../services/email.service.js';
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
 import { UnauthorizedError, ForbiddenError, ConflictError } from '../../lib/errors.js';
@@ -18,10 +18,18 @@ export async function loginUser(
   ipAddress?: string,
 ) {
   const user = await prisma.user.findUnique({
-    where: { email, isActive: true, deletedAt: null },
+    where: { email, deletedAt: null },
   });
 
   if (!user) {
+    throw new UnauthorizedError('Invalid credentials');
+  }
+
+  if (!user.isActive && !user.emailVerifiedAt) {
+    throw new UnauthorizedError('Please verify your email address before logging in.');
+  }
+
+  if (!user.isActive) {
     throw new UnauthorizedError('Invalid credentials');
   }
 
@@ -202,8 +210,6 @@ export async function registerUser(
   email: string,
   name: string,
   password: string,
-  userAgent?: string,
-  ipAddress?: string,
 ) {
   const existing = await prisma.user.findUnique({
     where: { email },
@@ -215,18 +221,58 @@ export async function registerUser(
   }
 
   const passwordHash = await hashPassword(password);
+  const { plainToken, hashedToken } = generateResetToken(); // reuse same util
 
-  const user = await prisma.user.create({
-    data: { email, name, passwordHash, role: 'MEMBER', isActive: true },
+  await prisma.user.create({
+    data: {
+      email,
+      name,
+      passwordHash,
+      role: 'MEMBER',
+      isActive: false, // inactive until email verified
+      emailVerifyTokenHash: hashedToken,
+      emailVerifyExpiry: new Date(Date.now() + env.EMAIL_VERIFY_EXPIRY_MIN * 60_000),
+    },
   });
 
-  const refreshToken = generateRefreshToken();
-  const hashedRefreshToken = hashToken(refreshToken);
+  sendVerificationEmail(email, plainToken).catch((err) => {
+    logger.error({ err, email }, 'Failed to send verification email');
+  });
 
+  return { message: 'Account created. Please check your email to verify your account.' };
+}
+
+export async function verifyEmail(token: string, userAgent?: string, ipAddress?: string) {
+  const hashedToken = hashToken(token);
+
+  const user = await prisma.user.findFirst({
+    where: {
+      emailVerifyTokenHash: hashedToken,
+      emailVerifyExpiry: { gt: new Date() },
+      deletedAt: null,
+    },
+  });
+
+  if (!user) {
+    throw new UnauthorizedError('Invalid or expired verification link.');
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      isActive: true,
+      emailVerifiedAt: new Date(),
+      emailVerifyTokenHash: null,
+      emailVerifyExpiry: null,
+    },
+  });
+
+  // Log them in immediately after verification
+  const refreshToken = generateRefreshToken();
   const session = await prisma.session.create({
     data: {
       userId: user.id,
-      refreshToken: hashedRefreshToken,
+      refreshToken: hashToken(refreshToken),
       expiresAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60_000),
       lastActiveAt: new Date(),
       userAgent: userAgent ?? null,
@@ -238,9 +284,34 @@ export async function registerUser(
     userId: user.id,
     role: user.role,
     sessionId: session.id,
+    mustChangePassword: false,
   });
 
   return { accessToken, refreshToken, expiresIn: env.ACCESS_TOKEN_EXPIRY_MIN * 60, mustChangePassword: false };
+}
+
+export async function resendVerification(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email, deletedAt: null },
+    select: { id: true, isActive: true, emailVerifiedAt: true },
+  });
+
+  // Silent return — don't reveal whether email exists or is already verified
+  if (!user || user.isActive || user.emailVerifiedAt) return;
+
+  const { plainToken, hashedToken } = generateResetToken();
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      emailVerifyTokenHash: hashedToken,
+      emailVerifyExpiry: new Date(Date.now() + env.EMAIL_VERIFY_EXPIRY_MIN * 60_000),
+    },
+  });
+
+  sendVerificationEmail(email, plainToken).catch((err) => {
+    logger.error({ err, email }, 'Failed to resend verification email');
+  });
 }
 
 export async function resetPassword(

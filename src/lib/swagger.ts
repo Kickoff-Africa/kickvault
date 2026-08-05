@@ -214,7 +214,7 @@ const spec = {
       post: {
         tags: ['Auth'],
         summary: 'Self-register a new account',
-        description: 'Open registration. If `ALLOWED_EMAIL_DOMAIN` is configured on the server, only emails matching that domain are accepted. New accounts are assigned the MEMBER role.',
+        description: 'Requires `REGISTRATION_ENABLED=true`. If `ALLOWED_EMAIL_DOMAIN` is set, only that domain is accepted. A verification email is sent — account is inactive until verified.',
         security: [],
         requestBody: {
           required: true,
@@ -234,11 +234,61 @@ const spec = {
         },
         responses: {
           201: {
-            description: 'Account created — tokens returned, logged in immediately',
+            description: 'Account created — verification email sent. User must verify before logging in.',
+            content: { 'application/json': { schema: { type: 'object', properties: { message: { type: 'string' } } } } },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          409: { $ref: '#/components/responses/Conflict' },
+        },
+      },
+    },
+    '/auth/verify-email': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Verify email address using token from verification email',
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token'],
+                properties: { token: { type: 'string', example: 'abc123...' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Email verified — logged in, tokens returned',
             content: { 'application/json': { schema: { $ref: '#/components/schemas/Tokens' } } },
           },
           400: { $ref: '#/components/responses/BadRequest' },
-          409: { $ref: '#/components/responses/Conflict' },
+          401: { description: 'Invalid or expired verification token' },
+        },
+      },
+    },
+    '/auth/resend-verification': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Resend verification email',
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['email'],
+                properties: { email: { type: 'string', format: 'email' } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Response is identical whether the email exists or not (prevents enumeration)' },
         },
       },
     },

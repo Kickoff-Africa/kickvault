@@ -6,6 +6,8 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
   registerSchema,
+  verifyEmailSchema,
+  resendVerificationSchema,
 } from './auth.validation.js';
 import {
   loginUser,
@@ -14,6 +16,8 @@ import {
   requestPasswordReset,
   resetPassword as resetPasswordService,
   registerUser,
+  verifyEmail,
+  resendVerification,
 } from './auth.service.js';
 import { ValidationError, ForbiddenError } from '../../lib/errors.js';
 import { env } from '../../config/env.js';
@@ -70,12 +74,22 @@ export async function register(req: Request, res: Response): Promise<void> {
     throw new ForbiddenError('Self-registration is not enabled. Contact your administrator.');
   }
   const { email, name, password } = parseBody(registerSchema, req.body);
-  const result = await registerUser(
-    email,
-    name,
-    password,
+  const result = await registerUser(email, name, password);
+  res.status(201).json(result);
+}
+
+export async function verifyEmailHandler(req: Request, res: Response): Promise<void> {
+  const { token } = parseBody(verifyEmailSchema, req.body);
+  const result = await verifyEmail(
+    token,
     req.headers['user-agent'] as string | undefined,
     req.ip,
   );
-  res.status(201).json(result);
+  res.status(200).json(result);
+}
+
+export async function resendVerificationHandler(req: Request, res: Response): Promise<void> {
+  const { email } = parseBody(resendVerificationSchema, req.body);
+  await resendVerification(email);
+  res.status(200).json({ message: 'If your account is pending verification, a new email has been sent.' });
 }
