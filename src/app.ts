@@ -19,7 +19,41 @@ const app = express();
 
 app.use(helmet({ contentSecurityPolicy: false })); // CSP disabled so Swagger UI loads
 app.use(cors());
-app.use(pinoHttp({ logger }));
+app.use(
+  pinoHttp({
+    logger,
+    // Assign a request ID to every request
+    genReqId: (req) =>
+      (req.headers['x-request-id'] as string) ?? crypto.randomUUID(),
+    // What gets logged on request completion
+    customSuccessMessage: (req, res) =>
+      `${req.method} ${req.url} ${res.statusCode}`,
+    customErrorMessage: (req, res, err) =>
+      `${req.method} ${req.url} ${res.statusCode} — ${err.message}`,
+    // Slim down the logged request/response objects
+    serializers: {
+      req: (req) => ({
+        id: req.id,
+        method: req.method,
+        url: req.url,
+        remoteAddress: req.remoteAddress,
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode,
+      }),
+    },
+    // Don't log health checks — they're just noise
+    customLogLevel: (_req, res, err) => {
+      if (err) return 'error';
+      if (res.statusCode >= 500) return 'error';
+      if (res.statusCode >= 400) return 'warn';
+      return 'info';
+    },
+    autoLogging: {
+      ignore: (req) => req.url?.startsWith('/health') ?? false,
+    },
+  }),
+);
 app.use(express.json());
 app.use(healthRoutes);
 app.use(authRoutes);

@@ -8,18 +8,19 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
-  logger.error({ err, path: req.path, method: req.method }, 'Request error');
-
   if (err instanceof AppError) {
-    res
-      .status(err.statusCode)
-      .json({ error: { message: err.message, statusCode: err.statusCode } });
+    // 4xx — expected, not worth logging as an error
+    if (err.statusCode < 500) {
+      logger.warn({ statusCode: err.statusCode, path: req.path }, err.message);
+    } else {
+      logger.error({ err, path: req.path }, err.message);
+    }
+    res.status(err.statusCode).json({ error: { message: err.message, statusCode: err.statusCode } });
     return;
   }
 
-  const message =
-    process.env.NODE_ENV === 'production'
-      ? 'Internal Server Error'
-      : err.message;
+  // Unexpected error
+  logger.error({ err, path: req.path, method: req.method }, 'Unhandled error');
+  const message = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message;
   res.status(500).json({ error: { message, statusCode: 500 } });
 }
