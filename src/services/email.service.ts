@@ -14,11 +14,21 @@ export function getTransporter(): Transporter {
     transporter = nodemailer.createTransport({
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
-      secure: env.SMTP_PORT === 465, // TLS for port 465, STARTTLS for others
+      secure: env.SMTP_PORT === 465,
       auth: env.SMTP_USER ? { user: env.SMTP_USER, pass } : undefined,
+      tls: { rejectUnauthorized: false },
     });
   }
   return transporter;
+}
+
+export async function verifySmtp(): Promise<void> {
+  try {
+    await getTransporter().verify();
+    logger.info({ host: env.SMTP_HOST, port: env.SMTP_PORT }, 'SMTP connection verified');
+  } catch (err) {
+    logger.error({ err, host: env.SMTP_HOST, port: env.SMTP_PORT }, 'SMTP connection failed — emails will not be delivered');
+  }
 }
 
 export async function sendPasswordResetEmail(

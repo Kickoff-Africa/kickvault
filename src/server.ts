@@ -3,8 +3,10 @@ import { env } from './config/env.js';
 import { prisma } from './config/database.js';
 import { logger } from './lib/logger.js';
 import { seedSuperAdmin } from './lib/seed.js';
+import { verifySmtp } from './services/email.service.js';
 
 await seedSuperAdmin();
+await verifySmtp();
 
 const server = app.listen(env.PORT, () => {
   logger.info(`Kick Vault API started on port ${env.PORT}`);
