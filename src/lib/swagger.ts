@@ -171,6 +171,7 @@ const spec = {
     { name: 'Asset Access', description: 'Per-asset ACL management' },
     { name: 'Audit Logs', description: 'Immutable audit trail — append-only, export as CSV' },
     { name: 'Dashboard', description: 'Aggregated stats and recent activity feed' },
+    { name: 'Sessions', description: 'Active session and device management' },
   ],
   paths: {
     // ── Health ────────────────────────────────────────────────────────────────
@@ -1212,6 +1213,67 @@ const spec = {
           },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
+        },
+      },
+    },
+
+    // ── Sessions ──────────────────────────────────────────────────────────────
+    '/sessions': {
+      get: {
+        tags: ['Sessions'],
+        summary: 'List your active sessions and devices',
+        responses: {
+          200: {
+            description: 'Active sessions (current session flagged with isCurrent: true)',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    sessions: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string' },
+                          deviceName: { type: 'string', nullable: true, example: 'Chrome on macOS' },
+                          ipAddress: { type: 'string', nullable: true, example: '105.119.39.183' },
+                          createdAt: { type: 'string', format: 'date-time' },
+                          lastActiveAt: { type: 'string', format: 'date-time' },
+                          expiresAt: { type: 'string', format: 'date-time' },
+                          isCurrent: { type: 'boolean' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/sessions/others': {
+      delete: {
+        tags: ['Sessions'],
+        summary: 'Revoke all sessions except the current one',
+        responses: {
+          200: { description: 'All other sessions revoked' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+        },
+      },
+    },
+    '/sessions/{id}': {
+      delete: {
+        tags: ['Sessions'],
+        summary: 'Revoke a specific session by ID',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+        responses: {
+          204: { description: 'Session revoked' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { description: 'Cannot revoke your current session — use logout instead' },
+          404: { $ref: '#/components/responses/NotFound' },
         },
       },
     },

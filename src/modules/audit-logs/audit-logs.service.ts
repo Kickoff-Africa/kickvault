@@ -37,6 +37,42 @@ const AUDIT_LOG_USER_SELECT = {
   name: true,
 } as const;
 
+async function resolveTargetName(targetType: string, targetId: string | null): Promise<string | null> {
+  if (!targetId) return null;
+  if (targetType === 'CREDENTIAL') {
+    const c = await prisma.credential.findFirst({ where: { id: targetId }, select: { friendlyName: true } });
+    return c?.friendlyName ?? null;
+  }
+  if (targetType === 'ASSET') {
+    const a = await prisma.asset.findFirst({ where: { id: targetId }, select: { name: true, assetId: true } });
+    return a ? `${a.name} (${a.assetId})` : null;
+  }
+  return null;
+}
+
+async function enrichLogs<T extends { targetType: string; targetId: string | null }>(logs: T[]) {
+  // Deduplicate lookups by type+id
+  const toResolve = new Map<string, { type: string; id: string }>();
+  for (const log of logs) {
+    if (log.targetId) {
+      const key = `${log.targetType}:${log.targetId}`;
+      toResolve.set(key, { type: log.targetType, id: log.targetId });
+    }
+  }
+
+  const resolved = new Map<string, string | null>();
+  await Promise.all(
+    [...toResolve.entries()].map(async ([key, { type, id }]) => {
+      resolved.set(key, await resolveTargetName(type, id));
+    }),
+  );
+
+  return logs.map((log) => ({
+    ...log,
+    targetName: log.targetId ? (resolved.get(`${log.targetType}:${log.targetId}`) ?? null) : null,
+  }));
+}
+
 export async function listAuditLogs(params: ListAuditLogsQuery) {
   const { cursor, limit, ...filters } = params;
   const where = buildWhereClause(filters);
@@ -54,8 +90,9 @@ export async function listAuditLogs(params: ListAuditLogsQuery) {
   const hasMore = logs.length > limit;
   const items = hasMore ? logs.slice(0, limit) : logs;
   const nextCursor = hasMore ? items[items.length - 1].id : undefined;
+  const enriched = await enrichLogs(items);
 
-  return { items, nextCursor, hasMore };
+  return { items: enriched, nextCursor, hasMore };
 }
 
 function escapeCsv(value: string): string {
@@ -77,8 +114,10 @@ export async function exportAuditLogsCsv(params: ExportAuditLogsQuery) {
     },
   });
 
-  const header = 'ID,Timestamp,User Email,User Name,Action,Target Type,Target ID';
-  const rows = logs.map((log) =>
+  const enriched = await enrichLogs(logs);
+
+  const header = 'ID,Timestamp,User Email,User Name,Action,Target Type,Target ID,Target Name';
+  const rows = enriched.map((log) =>
     [
       escapeCsv(log.id),
       escapeCsv(log.createdAt.toISOString()),
@@ -87,6 +126,7 @@ export async function exportAuditLogsCsv(params: ExportAuditLogsQuery) {
       escapeCsv(log.action),
       escapeCsv(log.targetType),
       escapeCsv(log.targetId ?? ''),
+      escapeCsv(log.targetName ?? ''),
     ].join(','),
   );
 

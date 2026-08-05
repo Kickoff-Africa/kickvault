@@ -10,6 +10,7 @@ import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
 import { UnauthorizedError, ForbiddenError, ConflictError } from '../../lib/errors.js';
 import { logger } from '../../lib/logger.js';
+import { parseDeviceName } from '../../lib/device.js';
 
 export async function loginUser(
   email: string,
@@ -90,6 +91,7 @@ export async function loginUser(
       lastActiveAt: new Date(),
       userAgent: userAgent ?? null,
       ipAddress: ipAddress ?? null,
+      deviceName: parseDeviceName(userAgent),
     },
   });
 
@@ -162,6 +164,7 @@ export async function refreshSession(refreshToken: string) {
       lastActiveAt: new Date(),
       userAgent: session.userAgent,
       ipAddress: session.ipAddress,
+      deviceName: session.deviceName,
     },
   });
 
@@ -278,6 +281,7 @@ export async function verifyEmail(token: string, userAgent?: string, ipAddress?:
       lastActiveAt: new Date(),
       userAgent: userAgent ?? null,
       ipAddress: ipAddress ?? null,
+      deviceName: parseDeviceName(userAgent),
     },
   });
 
