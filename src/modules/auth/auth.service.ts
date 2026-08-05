@@ -146,7 +146,8 @@ export async function refreshSession(refreshToken: string) {
   }
 
   // Token rotation: delete old session, create new one
-  await prisma.session.delete({ where: { id: session.id } });
+  // Use deleteMany (no-op if already deleted) to avoid P2025 on concurrent refreshes
+  await prisma.session.deleteMany({ where: { id: session.id } });
 
   const newRefreshToken = generateRefreshToken();
   const hashedNewToken = hashToken(newRefreshToken);
