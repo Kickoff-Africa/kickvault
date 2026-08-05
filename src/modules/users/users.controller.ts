@@ -19,6 +19,7 @@ import {
   updateMyProfile,
   uploadUserAvatar,
   deleteUserAvatar,
+  hardDeleteUser,
 } from './users.service.js';
 import { ValidationError } from '../../lib/errors.js';
 
@@ -54,6 +55,11 @@ export async function update(req: Request, res: Response): Promise<void> {
   const body = parseBody(updateUserSchema, req.body);
   const user = await updateUser(req.params.id as string, body, req.user!.id);
   res.status(200).json({ user });
+}
+
+export async function hardDelete(req: Request, res: Response): Promise<void> {
+  await hardDeleteUser(req.params.id as string, req.user!.id);
+  res.status(204).end();
 }
 
 export async function deactivate(req: Request, res: Response): Promise<void> {

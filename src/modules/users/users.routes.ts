@@ -17,6 +17,7 @@ router.get('/api/users', authenticate, requireRole('MANAGER'), usersController.l
 router.get('/api/users/:id', authenticate, requireRole('MANAGER'), usersController.getById);
 router.patch('/api/users/:id', authenticate, requireRole(), usersController.update);
 router.post('/api/users/:id/deactivate', authenticate, requireRole(), usersController.deactivate);
+router.delete('/api/users/:id', authenticate, requireRole(), usersController.hardDelete);
 router.post('/api/users/:id/resend-invite', authenticate, requireRole(), usersController.resendInvite);
 
 export { router as userRoutes };

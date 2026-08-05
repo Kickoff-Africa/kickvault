@@ -653,6 +653,19 @@ const spec = {
           404: { $ref: '#/components/responses/NotFound' },
         },
       },
+      delete: {
+        tags: ['Users'],
+        summary: 'Permanently delete a user (SUPER_ADMIN only)',
+        description: 'Hard delete. User must have no owned credentials or assets. Cascades sessions, access records, and audit logs.',
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
+        responses: {
+          204: { description: 'User deleted' },
+          401: { $ref: '#/components/responses/Unauthorized' },
+          403: { $ref: '#/components/responses/Forbidden' },
+          404: { $ref: '#/components/responses/NotFound' },
+          409: { description: 'User still owns credentials or assets — reassign or delete them first' },
+        },
+      },
     },
     '/users/{id}/deactivate': {
       post: {

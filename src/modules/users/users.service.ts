@@ -300,6 +300,41 @@ export async function deleteUserAvatar(userId: string) {
   });
 }
 
+export async function hardDeleteUser(userId: string, requestedByUserId: string) {
+  if (userId === requestedByUserId) {
+    throw new ForbiddenError('Cannot delete yourself');
+  }
+
+  const user = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null },
+    select: {
+      id: true,
+      role: true,
+      _count: {
+        select: {
+          credentials: { where: { deletedAt: null } },
+          assets: { where: { deletedAt: null } },
+        },
+      },
+    },
+  });
+
+  if (!user) throw new NotFoundError('User not found');
+
+  if (user.role === 'SUPER_ADMIN') {
+    throw new ForbiddenError('Cannot delete a SUPER_ADMIN');
+  }
+
+  if (user._count.credentials > 0 || user._count.assets > 0) {
+    throw new ConflictError(
+      `Cannot delete user: they own ${user._count.credentials} credential(s) and ${user._count.assets} asset(s). Reassign or delete these first.`,
+    );
+  }
+
+  // Hard delete — cascades sessions, access records, audit logs via DB relations
+  await prisma.user.delete({ where: { id: userId } });
+}
+
 export async function changeOwnPassword(
   userId: string,
   sessionId: string,
