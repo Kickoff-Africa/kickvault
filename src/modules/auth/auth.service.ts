@@ -26,7 +26,11 @@ export async function loginUser(
 
   // Check if account is locked
   if (user.lockedUntil !== null && user.lockedUntil > new Date()) {
-    throw new ForbiddenError();
+    const remainingMs = user.lockedUntil.getTime() - Date.now();
+    const remainingMin = Math.ceil(remainingMs / 60_000);
+    throw new ForbiddenError(
+      `Account locked due to too many failed attempts. Try again in ${remainingMin} minute${remainingMin === 1 ? '' : 's'}.`,
+    );
   }
 
   const valid = await verifyPassword(user.passwordHash, password);
@@ -84,6 +88,7 @@ export async function loginUser(
     userId: user.id,
     role: user.role,
     sessionId: session.id,
+    mustChangePassword: user.mustChangePassword,
   });
 
   return {
@@ -154,12 +159,14 @@ export async function refreshSession(refreshToken: string) {
     userId: session.user.id,
     role: session.user.role,
     sessionId: newSession.id,
+    mustChangePassword: session.user.mustChangePassword,
   });
 
   return {
     accessToken,
     refreshToken: newRefreshToken,
     expiresIn: env.ACCESS_TOKEN_EXPIRY_MIN * 60,
+    mustChangePassword: session.user.mustChangePassword,
   };
 }
 

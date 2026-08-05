@@ -90,6 +90,6 @@ export async function removeAvatar(req: Request, res: Response): Promise<void> {
 
 export async function changePassword(req: Request, res: Response): Promise<void> {
   const { currentPassword, newPassword } = parseBody(changePasswordSchema, req.body);
-  await changeOwnPassword(req.user!.id, req.sessionId!, currentPassword, newPassword);
-  res.status(200).json({ message: 'Password changed successfully' });
+  const tokens = await changeOwnPassword(req.user!.id, req.sessionId!, currentPassword, newPassword);
+  res.status(200).json({ message: 'Password changed successfully', ...tokens });
 }

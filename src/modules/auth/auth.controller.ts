@@ -15,7 +15,8 @@ import {
   resetPassword as resetPasswordService,
   registerUser,
 } from './auth.service.js';
-import { ValidationError } from '../../lib/errors.js';
+import { ValidationError, ForbiddenError } from '../../lib/errors.js';
+import { env } from '../../config/env.js';
 
 function parseBody<T>(schema: { parse: (data: unknown) => T }, body: unknown): T {
   try {
@@ -65,6 +66,9 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
 }
 
 export async function register(req: Request, res: Response): Promise<void> {
+  if (!env.REGISTRATION_ENABLED) {
+    throw new ForbiddenError('Self-registration is not enabled. Contact your administrator.');
+  }
   const { email, name, password } = parseBody(registerSchema, req.body);
   const result = await registerUser(
     email,

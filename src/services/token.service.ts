@@ -8,6 +8,7 @@ export interface AccessTokenPayload {
   sub: string;
   role: string;
   sessionId: string;
+  mustChangePassword: boolean;
   iss: string;
   iat: number;
   exp: number;
@@ -17,8 +18,13 @@ export async function signAccessToken(payload: {
   userId: string;
   role: string;
   sessionId: string;
+  mustChangePassword?: boolean;
 }): Promise<string> {
-  return new SignJWT({ role: payload.role, sessionId: payload.sessionId })
+  return new SignJWT({
+    role: payload.role,
+    sessionId: payload.sessionId,
+    mustChangePassword: payload.mustChangePassword ?? false,
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(payload.userId)
     .setIssuedAt()

@@ -1,6 +1,7 @@
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import { env } from './config/env.js';
 import { pinoHttp } from 'pino-http';
 import { logger } from './lib/logger.js';
 import { healthRoutes } from './modules/health/health.routes.js';
@@ -18,7 +19,12 @@ import { registerSwagger } from './lib/swagger.js';
 const app = express();
 
 app.use(helmet({ contentSecurityPolicy: false })); // CSP disabled so Swagger UI loads
-app.use(cors());
+app.use(
+  cors({
+    origin: env.NODE_ENV === 'production' ? env.FRONTEND_URL : true,
+    credentials: true,
+  }),
+);
 app.use(
   pinoHttp({
     logger,

@@ -1,6 +1,7 @@
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
 import { uploadAvatar, deleteAvatar } from '../../lib/cloudinary.js';
+import { signAccessToken, generateRefreshToken, hashToken } from '../../services/token.service.js';
 import { hashPassword, verifyPassword } from '../../services/password.service.js';
 import {
   generateTempPassword,
@@ -298,7 +299,7 @@ export async function changeOwnPassword(
   sessionId: string,
   currentPassword: string,
   newPassword: string,
-): Promise<void> {
+) {
   const user = await prisma.user.findFirst({
     where: { id: userId, deletedAt: null, isActive: true },
   });
@@ -319,8 +320,28 @@ export async function changeOwnPassword(
     data: { passwordHash, mustChangePassword: false },
   });
 
-  // Delete all sessions except current
-  await prisma.session.deleteMany({
-    where: { userId, id: { not: sessionId } },
+  // Rotate the current session so the new token has mustChangePassword: false
+  await prisma.session.delete({ where: { id: sessionId } });
+
+  // Delete all other sessions
+  await prisma.session.deleteMany({ where: { userId } });
+
+  const newRefreshToken = generateRefreshToken();
+  const newSession = await prisma.session.create({
+    data: {
+      userId,
+      refreshToken: hashToken(newRefreshToken),
+      expiresAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60_000),
+      lastActiveAt: new Date(),
+    },
   });
+
+  const accessToken = await signAccessToken({
+    userId,
+    role: user.role,
+    sessionId: newSession.id,
+    mustChangePassword: false,
+  });
+
+  return { accessToken, refreshToken: newRefreshToken };
 }

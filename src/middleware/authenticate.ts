@@ -1,7 +1,13 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../services/token.service.js';
 import { prisma } from '../config/database.js';
-import { UnauthorizedError } from '../lib/errors.js';
+import { UnauthorizedError, ForbiddenError } from '../lib/errors.js';
+
+// Routes allowed when mustChangePassword is true
+const ALLOWED_WHEN_MUST_CHANGE = new Set([
+  'POST /api/users/me/password',
+  'POST /api/auth/logout',
+]);
 
 // Track last update time per session to avoid DB writes on every request
 const lastUpdateCache = new Map<string, number>();
@@ -25,6 +31,14 @@ export async function authenticate(
 
     req.user = { id: payload.sub, role: payload.role };
     req.sessionId = payload.sessionId;
+
+    // Block all actions until password is changed
+    if (payload.mustChangePassword) {
+      const routeKey = `${req.method} ${req.path}`;
+      if (!ALLOWED_WHEN_MUST_CHANGE.has(routeKey)) {
+        throw new ForbiddenError('You must change your password before continuing.');
+      }
+    }
 
     // Fire-and-forget lastActiveAt update with 1-minute threshold
     const now = Date.now();
