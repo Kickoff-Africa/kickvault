@@ -1,7 +1,7 @@
 /**
  * HTML email templates — styled to match the Kickoff Africa brand.
  *
- * Design: dark navy (#001A4D) base, bright blue (#0066F6) CTAs,
+ * Design: white background, navy (#001A4D) header, bright blue (#0066F6) CTAs,
  * gold (#FFE9B0) accents, Inter typeface, minimal / corporate-modern.
  *
  * All styles are inlined for maximum email-client compatibility.
@@ -22,19 +22,19 @@ function shell(body: string): string {
   <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
   <title>Kick Vault</title>
 </head>
-<body style="margin:0;padding:0;background-color:#000d26;font-family:'Inter',Arial,Helvetica,sans-serif;">
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:'Inter',Arial,Helvetica,sans-serif;">
 
   <!-- outer wrapper -->
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#000d26;min-height:100vh;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;min-height:100vh;">
     <tr>
       <td align="center" style="padding:40px 16px;">
 
         <!-- card -->
-        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#001a4d;border-radius:16px;overflow:hidden;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
 
-          <!-- header -->
+          <!-- header — navy brand bar -->
           <tr>
-            <td style="background-color:#001a4d;padding:32px 40px 28px;border-bottom:1px solid rgba(176,208,252,0.15);">
+            <td style="background-color:#001a4d;padding:28px 40px;border-radius:16px 16px 0 0;">
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td>
@@ -52,7 +52,7 @@ function shell(body: string): string {
                           </table>
                         </td>
                         <td style="vertical-align:middle;padding-left:10px;">
-                          <span style="font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">Kick</span><span style="font-size:20px;font-weight:700;color:#0066f6;letter-spacing:-0.3px;">Vault</span>
+                          <span style="font-size:20px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">Kick</span><span style="font-size:20px;font-weight:700;color:#60a5fa;letter-spacing:-0.3px;">Vault</span>
                         </td>
                       </tr>
                     </table>
@@ -70,14 +70,14 @@ function shell(body: string): string {
 
           <!-- footer -->
           <tr>
-            <td style="background-color:#000d26;padding:28px 40px;border-top:1px solid rgba(176,208,252,0.1);">
+            <td style="background-color:#f8fafc;padding:24px 40px;border-top:1px solid #e8edf2;border-radius:0 0 16px 16px;">
               <table cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
                   <td align="center">
-                    <p style="margin:0 0 6px;font-size:12px;color:#6b7fa3;line-height:1.5;">
-                      This email was sent by <strong style="color:#b0d0fc;">Kick Vault</strong> — the credential management platform by Kickoff Africa.
+                    <p style="margin:0 0 6px;font-size:12px;color:#64748b;line-height:1.5;">
+                      This email was sent by <strong style="color:#001a4d;">Kick Vault</strong> — the credential management platform by Kickoff Africa.
                     </p>
-                    <p style="margin:0;font-size:11px;color:#4a5e80;line-height:1.5;">
+                    <p style="margin:0;font-size:11px;color:#94a3b8;line-height:1.5;">
                       If you did not expect this email, you can safely ignore it.
                     </p>
                   </td>
@@ -90,10 +90,10 @@ function shell(body: string): string {
         <!-- /card -->
 
         <!-- sub-footer -->
-        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;margin-top:24px;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;margin-top:20px;">
           <tr>
             <td align="center">
-              <p style="margin:0;font-size:11px;color:#2d3f5e;">
+              <p style="margin:0;font-size:11px;color:#94a3b8;">
                 © ${new Date().getFullYear()} Kickoff Africa · Strategy. Execution. Impact.
               </p>
             </td>
@@ -131,7 +131,7 @@ function infoBox(content: string): string {
   return `
   <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:24px;">
     <tr>
-      <td style="background-color:#002b66;border-radius:12px;padding:20px 24px;border-left:3px solid #0066f6;">
+      <td style="background-color:#eff6ff;border-radius:12px;padding:20px 24px;border-left:3px solid #0066f6;">
         ${content}
       </td>
     </tr>
@@ -142,7 +142,7 @@ function highlightBox(content: string): string {
   return `
   <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:24px;">
     <tr>
-      <td style="background-color:#002244;border-radius:12px;padding:20px 24px;border:1px solid rgba(255,233,176,0.2);">
+      <td style="background-color:#f8fafc;border-radius:12px;padding:20px 24px;border:1px solid #e2e8f0;">
         ${content}
       </td>
     </tr>
@@ -153,7 +153,7 @@ function divider(): string {
   return `
   <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:28px 0;">
     <tr>
-      <td style="border-top:1px solid rgba(176,208,252,0.12);font-size:0;line-height:0;">&nbsp;</td>
+      <td style="border-top:1px solid #e8edf2;font-size:0;line-height:0;">&nbsp;</td>
     </tr>
   </table>`;
 }
@@ -176,10 +176,10 @@ export function inviteEmailHtml(inviteUrl: string, expiryDays: number): string {
         </tr>
       </table>
 
-      <h1 style="margin:0 0 12px;font-size:28px;font-weight:700;color:#ffffff;line-height:1.25;letter-spacing:-0.5px;">
+      <h1 style="margin:0 0 12px;font-size:28px;font-weight:700;color:#0f172a;line-height:1.25;letter-spacing:-0.5px;">
         Welcome to Kick Vault
       </h1>
-      <p style="margin:0 0 32px;font-size:16px;color:#b0d0fc;line-height:1.6;">
+      <p style="margin:0 0 32px;font-size:16px;color:#475569;line-height:1.6;">
         You've been invited to join Kick Vault — Kickoff Africa's secure credential management platform. Click below to set your password and activate your account.
       </p>
 
@@ -200,15 +200,15 @@ export function inviteEmailHtml(inviteUrl: string, expiryDays: number): string {
               <span style="font-size:14px;">⏱</span>
             </td>
             <td>
-              <p style="margin:0;font-size:13px;color:#b0d0fc;line-height:1.55;">
-                This invitation link expires in <strong style="color:#ffffff;">${expiryDays} day${expiryDays === 1 ? '' : 's'}</strong>. If you were not expecting this invitation, you can safely ignore this email.
+              <p style="margin:0;font-size:13px;color:#334155;line-height:1.55;">
+                This invitation link expires in <strong style="color:#0f172a;">${expiryDays} day${expiryDays === 1 ? '' : 's'}</strong>. If you were not expecting this invitation, you can safely ignore this email.
               </p>
             </td>
           </tr>
         </table>
       `)}
 
-      <p style="margin:24px 0 0;font-size:12px;color:#4a5e80;line-height:1.6;word-break:break-all;">
+      <p style="margin:24px 0 0;font-size:12px;color:#94a3b8;line-height:1.6;word-break:break-all;">
         Or copy and paste this link into your browser:<br/>
         <a href="${inviteUrl}" style="color:#0066f6;text-decoration:none;">${inviteUrl}</a>
       </p>
@@ -233,10 +233,10 @@ export function verifyEmailHtml(verifyUrl: string, expiryMin: number): string {
         </tr>
       </table>
 
-      <h1 style="margin:0 0 12px;font-size:28px;font-weight:700;color:#ffffff;line-height:1.25;letter-spacing:-0.5px;">
+      <h1 style="margin:0 0 12px;font-size:28px;font-weight:700;color:#0f172a;line-height:1.25;letter-spacing:-0.5px;">
         Confirm your email address
       </h1>
-      <p style="margin:0 0 32px;font-size:16px;color:#b0d0fc;line-height:1.6;">
+      <p style="margin:0 0 32px;font-size:16px;color:#475569;line-height:1.6;">
         Thanks for signing up to Kick Vault. Click the button below to verify your email address and activate your account.
       </p>
 
@@ -257,15 +257,15 @@ export function verifyEmailHtml(verifyUrl: string, expiryMin: number): string {
               <span style="font-size:14px;">⏱</span>
             </td>
             <td>
-              <p style="margin:0;font-size:13px;color:#b0d0fc;line-height:1.55;">
-                This verification link expires in <strong style="color:#ffffff;">${expiryMin} minutes</strong>. If you didn't create a Kick Vault account, you can safely ignore this email.
+              <p style="margin:0;font-size:13px;color:#334155;line-height:1.55;">
+                This verification link expires in <strong style="color:#0f172a;">${expiryMin} minutes</strong>. If you didn't create a Kick Vault account, you can safely ignore this email.
               </p>
             </td>
           </tr>
         </table>
       `)}
 
-      <p style="margin:24px 0 0;font-size:12px;color:#4a5e80;line-height:1.6;word-break:break-all;">
+      <p style="margin:24px 0 0;font-size:12px;color:#94a3b8;line-height:1.6;word-break:break-all;">
         Or copy and paste this link into your browser:<br/>
         <a href="${verifyUrl}" style="color:#0066f6;text-decoration:none;">${verifyUrl}</a>
       </p>
@@ -284,16 +284,16 @@ export function passwordResetEmailHtml(resetUrl: string, expiryMin: number): str
       <!-- badge -->
       <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
         <tr>
-          <td style="background-color:rgba(255,233,176,0.1);border:1px solid rgba(255,233,176,0.25);border-radius:20px;padding:6px 14px;">
-            <span style="font-size:12px;font-weight:600;color:#ffe9b0;letter-spacing:0.5px;text-transform:uppercase;">Password Reset</span>
+          <td style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:20px;padding:6px 14px;">
+            <span style="font-size:12px;font-weight:600;color:#c2410c;letter-spacing:0.5px;text-transform:uppercase;">Password Reset</span>
           </td>
         </tr>
       </table>
 
-      <h1 style="margin:0 0 12px;font-size:28px;font-weight:700;color:#ffffff;line-height:1.25;letter-spacing:-0.5px;">
+      <h1 style="margin:0 0 12px;font-size:28px;font-weight:700;color:#0f172a;line-height:1.25;letter-spacing:-0.5px;">
         Reset your password
       </h1>
-      <p style="margin:0 0 32px;font-size:16px;color:#b0d0fc;line-height:1.6;">
+      <p style="margin:0 0 32px;font-size:16px;color:#475569;line-height:1.6;">
         We received a request to reset the password for your Kick Vault account. Click the button below to choose a new password.
       </p>
 
@@ -314,15 +314,15 @@ export function passwordResetEmailHtml(resetUrl: string, expiryMin: number): str
               <span style="font-size:14px;">⚠️</span>
             </td>
             <td>
-              <p style="margin:0;font-size:13px;color:#b0d0fc;line-height:1.55;">
-                This link expires in <strong style="color:#ffffff;">${expiryMin} minutes</strong>. If you did not request a password reset, no action is needed — your password has not been changed.
+              <p style="margin:0;font-size:13px;color:#334155;line-height:1.55;">
+                This link expires in <strong style="color:#0f172a;">${expiryMin} minutes</strong>. If you did not request a password reset, no action is needed — your password has not been changed.
               </p>
             </td>
           </tr>
         </table>
       `)}
 
-      <p style="margin:24px 0 0;font-size:12px;color:#4a5e80;line-height:1.6;word-break:break-all;">
+      <p style="margin:24px 0 0;font-size:12px;color:#94a3b8;line-height:1.6;word-break:break-all;">
         Or copy and paste this link into your browser:<br/>
         <a href="${resetUrl}" style="color:#0066f6;text-decoration:none;">${resetUrl}</a>
       </p>
