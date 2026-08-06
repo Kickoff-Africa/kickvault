@@ -44,6 +44,12 @@ export const registerSchema = z.object({
   password: z.string().min(12, 'Password must be at least 12 characters'),
 });
 
+export const acceptInviteSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(12, 'Password must be at least 12 characters'),
+});
+
+export type AcceptInviteInput = z.infer<typeof acceptInviteSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

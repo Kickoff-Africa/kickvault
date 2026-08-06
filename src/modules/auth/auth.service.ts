@@ -74,18 +74,12 @@ export async function loginUser(
   }
 
   // Success: reset failed attempts, update last login
-  // If this is an invited user logging in for the first time, activate them
   await prisma.user.update({
     where: { id: user.id },
     data: {
       failedAttempts: 0,
       lockedUntil: null,
       lastLoginAt: new Date(),
-      ...(user.inviteTokenHash && {
-        isActive: true,
-        inviteTokenHash: null,
-        inviteTokenExpiry: null,
-      }),
     },
   });
 
@@ -328,6 +322,63 @@ export async function resendVerification(email: string) {
   sendVerificationEmail(email, plainToken).catch((err) => {
     logger.error({ err, email }, 'Failed to resend verification email');
   });
+}
+
+export async function acceptInvite(
+  token: string,
+  password: string,
+  userAgent?: string,
+  ipAddress?: string,
+) {
+  const hashedToken = hashToken(token);
+
+  const user = await prisma.user.findFirst({
+    where: {
+      inviteTokenHash: hashedToken,
+      inviteTokenExpiry: { gt: new Date() },
+      deletedAt: null,
+    },
+  });
+
+  if (!user) {
+    throw new UnauthorizedError('Invalid or expired invite link.');
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      passwordHash,
+      isActive: true,
+      mustChangePassword: false,
+      inviteTokenHash: null,
+      inviteTokenExpiry: null,
+      lastLoginAt: new Date(),
+    },
+  });
+
+  const refreshToken = generateRefreshToken();
+  const session = await prisma.session.create({
+    data: {
+      userId: user.id,
+      refreshToken: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + env.REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60_000),
+      lastActiveAt: new Date(),
+      userAgent: userAgent ?? null,
+      ipAddress: ipAddress ?? null,
+      deviceName: parseDeviceName(userAgent),
+    },
+  });
+
+  const accessToken = await signAccessToken({
+    userId: user.id,
+    role: user.role,
+    sessionId: session.id,
+    mustChangePassword: false,
+  });
+
+  return { accessToken, refreshToken, expiresIn: env.ACCESS_TOKEN_EXPIRY_MIN * 60, mustChangePassword: false };
 }
 
 export async function resetPassword(

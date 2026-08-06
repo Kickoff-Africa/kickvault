@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../services/token.service.js';
 import { prisma } from '../config/database.js';
-import { UnauthorizedError, ForbiddenError } from '../lib/errors.js';
+import { AppError, UnauthorizedError, ForbiddenError } from '../lib/errors.js';
 
 // Routes allowed when mustChangePassword is true
 const ALLOWED_WHEN_MUST_CHANGE = new Set([
@@ -36,7 +36,9 @@ export async function authenticate(
     if (payload.mustChangePassword && payload.role !== 'SUPER_ADMIN') {
       const routeKey = `${req.method} ${req.path}`;
       if (!ALLOWED_WHEN_MUST_CHANGE.has(routeKey)) {
-        throw new ForbiddenError('You must change your password before continuing.');
+        const err = new ForbiddenError('You must change your password before continuing.');
+        err.code = 'MUST_CHANGE_PASSWORD';
+        throw err;
       }
     }
 
@@ -58,7 +60,7 @@ export async function authenticate(
 
     next();
   } catch (err) {
-    if (err instanceof UnauthorizedError) throw err;
+    if (err instanceof AppError) throw err;
     throw new UnauthorizedError('Invalid or expired token');
   }
 }

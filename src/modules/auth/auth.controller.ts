@@ -8,6 +8,7 @@ import {
   registerSchema,
   verifyEmailSchema,
   resendVerificationSchema,
+  acceptInviteSchema,
 } from './auth.validation.js';
 import {
   loginUser,
@@ -18,6 +19,7 @@ import {
   registerUser,
   verifyEmail,
   resendVerification,
+  acceptInvite,
 } from './auth.service.js';
 import { ValidationError, ForbiddenError } from '../../lib/errors.js';
 import { env } from '../../config/env.js';
@@ -92,4 +94,15 @@ export async function resendVerificationHandler(req: Request, res: Response): Pr
   const { email } = parseBody(resendVerificationSchema, req.body);
   await resendVerification(email);
   res.status(200).json({ message: 'If your account is pending verification, a new email has been sent.' });
+}
+
+export async function acceptInviteHandler(req: Request, res: Response): Promise<void> {
+  const { token, password } = parseBody(acceptInviteSchema, req.body);
+  const result = await acceptInvite(
+    token,
+    password,
+    req.headers['user-agent'] as string | undefined,
+    req.ip,
+  );
+  res.status(200).json(result);
 }

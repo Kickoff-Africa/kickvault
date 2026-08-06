@@ -12,5 +12,6 @@ router.post('/api/auth/logout', authenticate, authController.logout);
 router.post('/api/auth/refresh', authController.refresh);
 router.post('/api/auth/forgot-password', authController.forgotPassword);
 router.post('/api/auth/reset-password', authController.resetPassword);
+router.post('/api/auth/accept-invite', authController.acceptInviteHandler);
 
 export { router as authRoutes };

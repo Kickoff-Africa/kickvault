@@ -15,7 +15,7 @@ export function errorHandler(
     } else {
       logger.error({ err, path: req.path }, err.message);
     }
-    res.status(err.statusCode).json({ error: { message: err.message, statusCode: err.statusCode } });
+    res.status(err.statusCode).json({ error: { message: err.message, statusCode: err.statusCode, ...(err.code && { code: err.code }) } });
     return;
   }
 

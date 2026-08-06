@@ -4,11 +4,9 @@ import { logger } from '../../lib/logger.js';
 import { uploadAvatar, deleteAvatar } from '../../lib/cloudinary.js';
 import { signAccessToken, generateRefreshToken, hashToken } from '../../services/token.service.js';
 import { hashPassword, verifyPassword } from '../../services/password.service.js';
-import {
-  generateTempPassword,
-  generateInviteToken,
-} from '../../services/token.service.js';
+import { generateInviteToken } from '../../services/token.service.js';
 import { sendInviteEmail } from '../../services/email.service.js';
+import { randomBytes } from 'crypto';
 import {
   ConflictError,
   NotFoundError,
@@ -75,12 +73,13 @@ export async function inviteUser(
     throw new ConflictError('Email already in use');
   }
 
-  const tempPassword = generateTempPassword();
-  const passwordHash = await hashPassword(tempPassword);
-  const { hashedToken: inviteTokenHash } = generateInviteToken();
+  const { plainToken, hashedToken: inviteTokenHash } = generateInviteToken();
   const inviteTokenExpiry = new Date(
     Date.now() + env.INVITE_TOKEN_EXPIRY_DAYS * 24 * 60 * 60_000,
   );
+  // Set an unusable placeholder password — user sets their real password via the invite link
+  const passwordHash = await hashPassword(randomBytes(32).toString('hex'));
+  const inviteUrl = `${env.FRONTEND_URL}/accept-invite?token=${plainToken}`;
 
   const user = await prisma.user.create({
     data: {
@@ -88,15 +87,15 @@ export async function inviteUser(
       name,
       role,
       passwordHash,
-      isActive: false, // inactive until they accept the invite and set their password
-      mustChangePassword: true,
+      isActive: false, // inactive until they accept the invite
+      mustChangePassword: false,
       inviteTokenHash,
       inviteTokenExpiry,
     },
     select: SAFE_USER_SELECT,
   });
 
-  sendInviteEmail(email, tempPassword).catch((err) => {
+  sendInviteEmail(email, inviteUrl).catch((err) => {
     logger.error({ err, email }, 'Failed to send invite email');
   });
 
@@ -116,25 +115,22 @@ export async function resendInvite(userId: string, requestedByUserId: string) {
     throw new ConflictError('User has already accepted their invitation');
   }
 
-  const tempPassword = generateTempPassword();
-  const passwordHash = await hashPassword(tempPassword);
-  const { hashedToken: inviteTokenHash } = generateInviteToken();
+  const { plainToken, hashedToken: inviteTokenHash } = generateInviteToken();
   const inviteTokenExpiry = new Date(
     Date.now() + env.INVITE_TOKEN_EXPIRY_DAYS * 24 * 60 * 60_000,
   );
+  const inviteUrl = `${env.FRONTEND_URL}/accept-invite?token=${plainToken}`;
 
   const updated = await prisma.user.update({
     where: { id: userId },
     data: {
-      passwordHash,
       inviteTokenHash,
       inviteTokenExpiry,
-      mustChangePassword: true,
     },
     select: SAFE_USER_SELECT,
   });
 
-  sendInviteEmail(user.email, tempPassword).catch((err) => {
+  sendInviteEmail(user.email, inviteUrl).catch((err) => {
     logger.error({ err, email: user.email }, 'Failed to resend invite email');
   });
 

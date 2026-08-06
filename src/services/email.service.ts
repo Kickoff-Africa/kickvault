@@ -1,5 +1,10 @@
 import { env } from '../config/env.js';
 import { logger } from '../lib/logger.js';
+import {
+  inviteEmailHtml,
+  verifyEmailHtml,
+  passwordResetEmailHtml,
+} from '../lib/email-templates.js';
 
 // Configurable — set USESEND_API_URL env var to your self-hosted instance
 
@@ -56,9 +61,9 @@ export async function sendPasswordResetEmail(
   const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${resetToken}`;
   await sendEmail({
     to,
-    subject: 'Kick Vault - Password Reset',
-    text: `You requested a password reset. Click here to reset your password: ${resetUrl}\n\nThis link expires in ${env.RESET_TOKEN_EXPIRY_MIN} minutes.\n\nIf you did not request this, ignore this email.`,
-    html: `<p>You requested a password reset.</p><p><a href="${resetUrl}">Click here to reset your password</a></p><p>This link expires in ${env.RESET_TOKEN_EXPIRY_MIN} minutes.</p><p>If you did not request this, ignore this email.</p>`,
+    subject: 'Reset your Kick Vault password',
+    text: `You requested a password reset.\n\nClick here to reset your password: ${resetUrl}\n\nThis link expires in ${env.RESET_TOKEN_EXPIRY_MIN} minutes.\n\nIf you did not request this, ignore this email.`,
+    html: passwordResetEmailHtml(resetUrl, env.RESET_TOKEN_EXPIRY_MIN),
   });
 }
 
@@ -69,21 +74,20 @@ export async function sendVerificationEmail(
   const verifyUrl = `${env.FRONTEND_URL}/verify-email?token=${verifyToken}`;
   await sendEmail({
     to,
-    subject: 'Kick Vault - Verify your email address',
-    text: `Welcome to Kick Vault!\n\nPlease verify your email address by clicking the link below:\n${verifyUrl}\n\nThis link expires in ${env.EMAIL_VERIFY_EXPIRY_MIN} minutes.\n\nIf you did not create an account, ignore this email.`,
-    html: `<p>Welcome to Kick Vault!</p><p>Please verify your email address:</p><p><a href="${verifyUrl}">Verify email address</a></p><p>This link expires in ${env.EMAIL_VERIFY_EXPIRY_MIN} minutes.</p><p>If you did not create an account, ignore this email.</p>`,
+    subject: 'Verify your Kick Vault email address',
+    text: `Welcome to Kick Vault!\n\nVerify your email address: ${verifyUrl}\n\nThis link expires in ${env.EMAIL_VERIFY_EXPIRY_MIN} minutes.\n\nIf you did not create an account, ignore this email.`,
+    html: verifyEmailHtml(verifyUrl, env.EMAIL_VERIFY_EXPIRY_MIN),
   });
 }
 
 export async function sendInviteEmail(
   to: string,
-  tempPassword: string,
+  inviteUrl: string,
 ): Promise<void> {
-  const loginUrl = `${env.FRONTEND_URL}/login`;
   await sendEmail({
     to,
-    subject: 'Kick Vault - You have been invited',
-    text: `You have been invited to Kick Vault.\n\nYour temporary password: ${tempPassword}\n\nLog in at: ${loginUrl}\n\nYou will be required to change your password after your first login.`,
-    html: `<p>You have been invited to Kick Vault.</p><p>Your temporary password: <strong>${tempPassword}</strong></p><p><a href="${loginUrl}">Log in here</a></p><p>You will be required to change your password after your first login.</p>`,
+    subject: "You've been invited to Kick Vault",
+    text: `You have been invited to Kick Vault.\n\nSet up your account by clicking the link below:\n${inviteUrl}\n\nThis link expires in ${env.INVITE_TOKEN_EXPIRY_DAYS} day${env.INVITE_TOKEN_EXPIRY_DAYS === 1 ? '' : 's'}.\n\nIf you were not expecting this invitation, ignore this email.`,
+    html: inviteEmailHtml(inviteUrl, env.INVITE_TOKEN_EXPIRY_DAYS),
   });
 }
