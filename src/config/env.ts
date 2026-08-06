@@ -24,7 +24,8 @@ const envSchema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(587),
   SMTP_USER: z.string().default(''),
   SMTP_PASS: z.string().default(''),
-  SMTP_API_KEY: z.string().default(''), // Resend/usesend API key — used as SMTP password when set
+  SMTP_API_KEY: z.string().default(''), // usesend API key
+  USESEND_API_URL: z.string().url().default('https://app.usesend.com/api/v1/emails'),
   SMTP_FROM: z.string().email().default('noreply@kickvault.local'),
   EMAIL_VERIFY_EXPIRY_MIN: z.coerce.number().int().positive().default(60),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),

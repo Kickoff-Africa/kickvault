@@ -1,7 +1,7 @@
 import { env } from '../config/env.js';
 import { logger } from '../lib/logger.js';
 
-const USESEND_API_URL = 'https://app.usesend.com/api/v1/emails';
+// Configurable — set USESEND_API_URL env var to your self-hosted instance
 
 // Test helper — replace global fetch with a mock in tests
 let _fetch: typeof fetch = fetch;
@@ -17,7 +17,7 @@ async function sendEmail(payload: {
   text: string;
   html: string;
 }): Promise<void> {
-  const res = await _fetch(USESEND_API_URL, {
+  const res = await _fetch(env.USESEND_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
