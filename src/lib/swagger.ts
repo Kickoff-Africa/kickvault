@@ -415,6 +415,37 @@ const spec = {
         },
       },
     },
+    '/auth/accept-invite': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Accept an invitation and set your password',
+        description: 'Validates the one-time invite token from the invitation email, sets the user\'s chosen password, activates the account, and returns a session. The invite token is single-use and expires after `INVITE_TOKEN_EXPIRY_DAYS` days (default 7).',
+        security: [],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token', 'password'],
+                properties: {
+                  token: { type: 'string', description: 'The token from the ?token= query parameter in the invite link' },
+                  password: { type: 'string', minLength: 12, example: 'MyNewP@ssword123', description: 'The password the user wants to set' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: 'Invite accepted — account activated and logged in',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Tokens' } } },
+          },
+          400: { $ref: '#/components/responses/BadRequest' },
+          401: { description: 'Invalid or expired invite token' },
+        },
+      },
+    },
 
     // ── Users ─────────────────────────────────────────────────────────────────
     '/users/me/avatar': {
@@ -513,6 +544,7 @@ const spec = {
       post: {
         tags: ['Users'],
         summary: 'Invite a new user (SUPER_ADMIN only)',
+        description: 'Creates an inactive account and sends an invitation email containing a one-time link. The user clicks the link, sets their own password via `POST /auth/accept-invite`, and is logged in immediately. No temporary password is ever issued.',
         requestBody: {
           required: true,
           content: {
@@ -691,9 +723,10 @@ const spec = {
       post: {
         tags: ['Users'],
         summary: 'Resend invite email (SUPER_ADMIN only)',
+        description: 'Generates a fresh one-time invite token (invalidating any previous link) and resends the invitation email. Only works if the user has not yet accepted their invitation.',
         parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'string' } }],
         responses: {
-          200: { description: 'Invite resent' },
+          200: { description: 'Invite resent — previous invite link is now invalid' },
           401: { $ref: '#/components/responses/Unauthorized' },
           403: { $ref: '#/components/responses/Forbidden' },
           404: { $ref: '#/components/responses/NotFound' },
