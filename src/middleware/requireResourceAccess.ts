@@ -1,12 +1,11 @@
-import { PermissionLevel } from '@prisma/client';
-import { prisma } from '../config/database.js';
+import type { PermissionLevel } from '@prisma/client';
 import { ForbiddenError } from '../lib/errors.js';
-
-const PERMISSION_HIERARCHY: Record<PermissionLevel, number> = {
-  VIEW: 1,
-  EDIT: 2,
-  MANAGE: 3,
-};
+import {
+  effectiveAssetPermission,
+  effectiveCredentialPermission,
+  hasPermission,
+  isPrivilegedRole,
+} from '../lib/access.js';
 
 export async function checkCredentialAccess(
   userId: string,
@@ -14,17 +13,9 @@ export async function checkCredentialAccess(
   credentialId: string,
   requiredPermission: PermissionLevel,
 ): Promise<void> {
-  if (userRole === 'SUPER_ADMIN' || userRole === 'MANAGER') return;
-
-  const access = await prisma.credentialAccess.findUnique({
-    where: { userId_credentialId: { userId, credentialId } },
-  });
-
-  if (!access) throw new ForbiddenError();
-
-  if (PERMISSION_HIERARCHY[access.permission] < PERMISSION_HIERARCHY[requiredPermission]) {
-    throw new ForbiddenError();
-  }
+  if (isPrivilegedRole(userRole)) return;
+  const actual = await effectiveCredentialPermission(userId, credentialId);
+  if (!actual || !hasPermission(actual, requiredPermission)) throw new ForbiddenError();
 }
 
 export async function checkAssetAccess(
@@ -33,15 +24,7 @@ export async function checkAssetAccess(
   assetId: string,
   requiredPermission: PermissionLevel,
 ): Promise<void> {
-  if (userRole === 'SUPER_ADMIN' || userRole === 'MANAGER') return;
-
-  const access = await prisma.assetAccess.findUnique({
-    where: { userId_assetId: { userId, assetId } },
-  });
-
-  if (!access) throw new ForbiddenError();
-
-  if (PERMISSION_HIERARCHY[access.permission] < PERMISSION_HIERARCHY[requiredPermission]) {
-    throw new ForbiddenError();
-  }
+  if (isPrivilegedRole(userRole)) return;
+  const actual = await effectiveAssetPermission(userId, assetId);
+  if (!actual || !hasPermission(actual, requiredPermission)) throw new ForbiddenError();
 }

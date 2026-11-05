@@ -14,6 +14,16 @@ import { assetsRoutes } from './modules/assets/assets.routes.js';
 import { auditLogsRoutes } from './modules/audit-logs/audit-logs.routes.js';
 import { dashboardRoutes } from './modules/dashboard/dashboard.routes.js';
 import { sessionsRoutes } from './modules/sessions/sessions.routes.js';
+import { teamsRoutes } from './modules/teams/teams.routes.js';
+import { requestsRoutes } from './modules/requests/requests.routes.js';
+import { categoriesRoutes } from './modules/categories/categories.routes.js';
+import { departmentsRoutes } from './modules/departments/departments.routes.js';
+import { apiKeysRoutes } from './modules/api-keys/api-keys.routes.js';
+import { alertRulesRoutes } from './modules/alert-rules/alert-rules.routes.js';
+import { registerAlertEngine } from './modules/alert-rules/alert-rules.service.js';
+import { webhooksRoutes } from './modules/webhooks/webhooks.routes.js';
+import { integrationsRoutes } from './modules/integrations/integrations.routes.js';
+import { reportsRoutes } from './modules/reports/reports.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { registerSwagger } from './lib/swagger.js';
 
@@ -61,7 +71,8 @@ app.use(
     },
   }),
 );
-app.use(express.json());
+// 1 MB: CSV import endpoints accept pasted CSV text.
+app.use(express.json({ limit: '1mb' }));
 app.use(healthRoutes);
 app.use(authRoutes);
 app.use(userRoutes);
@@ -72,6 +83,16 @@ app.use(assetsRoutes);
 app.use(auditLogsRoutes);
 app.use(dashboardRoutes);
 app.use(sessionsRoutes);
+app.use(teamsRoutes);
+app.use(requestsRoutes);
+app.use(categoriesRoutes);
+app.use(departmentsRoutes);
+app.use(apiKeysRoutes);
+app.use(alertRulesRoutes);
+app.use(webhooksRoutes);
+app.use(integrationsRoutes);
+app.use(reportsRoutes);
+registerAlertEngine();
 registerSwagger(app);
 app.use(errorHandler);
 

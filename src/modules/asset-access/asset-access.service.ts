@@ -67,3 +67,26 @@ export async function listAssetAccess(assetId: string) {
 
   return access;
 }
+
+/** Sharing view for an asset: creator, direct grants and team grants. */
+export async function getAssetSharing(assetId: string) {
+  const asset = await prisma.asset.findFirst({
+    where: { id: assetId, deletedAt: null },
+    select: { createdBy: { select: { id: true, name: true, email: true } } },
+  });
+  if (!asset) throw new NotFoundError('Asset not found');
+
+  const [access, teams] = await Promise.all([
+    prisma.assetAccess.findMany({
+      where: { assetId },
+      include: { user: { select: { id: true, email: true, name: true, avatarUrl: true } } },
+      orderBy: { grantedAt: 'asc' },
+    }),
+    prisma.teamAsset.findMany({ where: { assetId }, include: { team: { select: { id: true, name: true } } } }),
+  ]);
+  return {
+    owner: asset.createdBy,
+    access: access.map((a) => ({ ...a, isOwner: a.userId === asset.createdBy.id })),
+    teams: teams.map((t) => ({ team: t.team, permission: t.permission, grantedAt: t.grantedAt })),
+  };
+}

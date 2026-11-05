@@ -6,12 +6,22 @@ import {
   updateProfileSchema,
   changePasswordSchema,
   listUsersSchema,
+  lookupUsersSchema,
+  deleteAccountSchema,
+  preferencesSchema,
+  totpCodeSchema,
+  totpDisableSchema,
 } from './users.validation.js';
+import * as settings from './users.settings.service.js';
+import { requestContext } from '../../services/audit.service.js';
 import {
   inviteUser,
   resendInvite as resendInviteService,
   listUsers,
-  getUserById,
+  userStats,
+  lookupUsers,
+  getUserDetails,
+  reactivateUser,
   updateUser,
   deactivateUser,
   changeOwnPassword,
@@ -35,25 +45,34 @@ function parseBody<T>(schema: { parse: (data: unknown) => T }, body: unknown): T
 }
 
 export async function invite(req: Request, res: Response): Promise<void> {
-  const { email, name, role } = parseBody(inviteUserSchema, req.body);
-  const user = await inviteUser(email, name, role, req.user!.id);
+  const { email, name, role, department } = parseBody(inviteUserSchema, req.body);
+  const user = await inviteUser(email, name, role, req.user!.id, department, requestContext(req));
   res.status(201).json({ user });
 }
 
 export async function list(req: Request, res: Response): Promise<void> {
-  const { page, limit } = parseBody(listUsersSchema, req.query);
-  const result = await listUsers(page, limit);
+  const { page, limit, ...filters } = parseBody(listUsersSchema, req.query);
+  const result = await listUsers(page, limit, filters);
   res.status(200).json(result);
 }
 
+export async function stats(_req: Request, res: Response): Promise<void> {
+  res.status(200).json(await userStats());
+}
+
+export async function lookup(req: Request, res: Response): Promise<void> {
+  const { search, limit } = parseBody(lookupUsersSchema, req.query);
+  res.status(200).json({ users: await lookupUsers(search, limit) });
+}
+
 export async function getById(req: Request, res: Response): Promise<void> {
-  const user = await getUserById(req.params.id as string);
+  const user = await getUserDetails(req.params.id as string);
   res.status(200).json({ user });
 }
 
 export async function update(req: Request, res: Response): Promise<void> {
   const body = parseBody(updateUserSchema, req.body);
-  const user = await updateUser(req.params.id as string, body, req.user!.id);
+  const user = await updateUser(req.params.id as string, body, req.user!.id, requestContext(req));
   res.status(200).json({ user });
 }
 
@@ -63,7 +82,12 @@ export async function hardDelete(req: Request, res: Response): Promise<void> {
 }
 
 export async function deactivate(req: Request, res: Response): Promise<void> {
-  const user = await deactivateUser(req.params.id as string, req.user!.id);
+  const result = await deactivateUser(req.params.id as string, req.user!.id, requestContext(req));
+  res.status(200).json(result);
+}
+
+export async function reactivate(req: Request, res: Response): Promise<void> {
+  const user = await reactivateUser(req.params.id as string, req.user!.id, requestContext(req));
   res.status(200).json({ user });
 }
 
@@ -98,4 +122,39 @@ export async function changePassword(req: Request, res: Response): Promise<void>
   const { currentPassword, newPassword } = parseBody(changePasswordSchema, req.body);
   const tokens = await changeOwnPassword(req.user!.id, req.sessionId!, currentPassword, newPassword);
   res.status(200).json({ message: 'Password changed successfully', ...tokens });
+}
+
+// ── Settings: preferences, login history, 2FA, account deletion ──
+
+export async function getPreferences(req: Request, res: Response): Promise<void> {
+  res.json({ preferences: await settings.getPreferences(req.user!.id) });
+}
+
+export async function updatePreferences(req: Request, res: Response): Promise<void> {
+  const body = parseBody(preferencesSchema, req.body);
+  res.json({ preferences: await settings.updatePreferences(req.user!.id, body) });
+}
+
+export async function loginHistory(req: Request, res: Response): Promise<void> {
+  res.json({ events: await settings.listLoginHistory(req.user!.id) });
+}
+
+export async function totpSetup(req: Request, res: Response): Promise<void> {
+  res.status(201).json(await settings.beginTotpSetup(req.user!.id));
+}
+
+export async function totpEnable(req: Request, res: Response): Promise<void> {
+  const { code } = parseBody(totpCodeSchema, req.body);
+  res.json(await settings.confirmTotpSetup(req.user!.id, code));
+}
+
+export async function totpDisable(req: Request, res: Response): Promise<void> {
+  const { password } = parseBody(totpDisableSchema, req.body);
+  res.json(await settings.disableTotp(req.user!.id, password));
+}
+
+export async function deleteMe(req: Request, res: Response): Promise<void> {
+  const { password } = parseBody(deleteAccountSchema, req.body);
+  await settings.deleteOwnAccount(req.user!.id, password);
+  res.status(204).end();
 }

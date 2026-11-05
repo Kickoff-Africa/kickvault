@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+  /** 6-digit authenticator code; required only for accounts with two-factor enabled. */
+  totpCode: z.string().regex(/^\d{6}$/, 'Code must be 6 digits').optional(),
 });
 
 export const refreshSchema = z.object({

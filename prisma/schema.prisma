@@ -16,24 +16,94 @@ enum Role {
   VIEWER
 }
 
-enum AssetCategory {
-  HARDWARE
-  SOFTWARE
-  DIGITAL
-  INTANGIBLE
-}
-
 enum AssetStatus {
   ACTIVE
   MAINTENANCE
   RETIRED
   LOST
+  DISPOSED
 }
 
+/// VIEW = view only, COPY = may reveal/copy the secret, EDIT = may modify, MANAGE = edit + share.
 enum PermissionLevel {
   VIEW
+  COPY
   EDIT
   MANAGE
+}
+
+enum CredentialType {
+  LOGIN
+  API_KEY
+  SSH_KEY
+  SOFTWARE_LICENSE
+  TOKEN
+  CERTIFICATE
+  OTHER
+}
+
+enum InsuranceStatus {
+  INSURED
+  UNINSURED
+  UNDER_REVIEW
+}
+
+enum DepreciationMethod {
+  STRAIGHT_LINE
+}
+
+enum WipeMethod {
+  NIST_SP_800_88
+  DOD_5220_22_M
+  PHYSICAL_DESTRUCTION
+  FACTORY_RESET
+  DEGAUSSING
+}
+
+enum RequestType {
+  ASSET_ACCESS
+  CREDENTIAL_ACCESS
+  PURCHASE
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  DENIED
+  CANCELLED
+}
+
+enum ApiKeyScope {
+  READ_ONLY
+  READ_WRITE
+}
+
+enum ThemePreference {
+  SYSTEM
+  LIGHT
+  DARK
+}
+
+enum FontSizePreference {
+  SMALL
+  DEFAULT
+  LARGE
+}
+
+enum SidebarPreference {
+  EXPANDED
+  COLLAPSED
+}
+
+enum SecretMaskPreference {
+  BULLETS
+  ASTERISKS
+  DASHES
+}
+
+enum IntegrationProvider {
+  SLACK
+  TEAMS
 }
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -62,16 +132,25 @@ model User {
   avatarUrl      String?   @map("avatar_url")
   avatarPublicId String?   @map("avatar_public_id")
   lastLoginAt      DateTime? @map("last_login_at")
+  /// Encrypted TOTP secret ("encryptedValue.iv.authTag.keyVersion"). totpEnabled flips only after the first code is verified.
+  totpSecret       String?   @map("totp_secret")
+  totpEnabled      Boolean   @default(false) @map("totp_enabled")
   deletedAt      DateTime? @map("deleted_at")
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   sessions         Session[]
   credentials      Credential[]
-  assets           Asset[]
+  assets           Asset[]            @relation("AssetCreator")
+  assignedAssets   Asset[]            @relation("AssetAssignee")
   credentialAccess CredentialAccess[]
   assetAccess      AssetAccess[]
   auditLogs        AuditLog[]
+  teamMemberships  TeamMember[]
+  preferences      UserPreference?
+  apiKeys          ApiKey[]
+  loginEvents      LoginEvent[]
+  requests         AccessRequest[]    @relation("RequestRequester")
 
   @@map("users")
 }
@@ -101,6 +180,9 @@ model Session {
 model Credential {
   id             String    @id @default(cuid())
   friendlyName   String    @map("friendly_name")
+  credType       CredentialType @default(OTHER) @map("cred_type")
+  policyRef      String?   @map("policy_ref")
+  currentVersion Int       @default(1) @map("current_version")
   systemHost     String?   @map("system_host")
   username       String?
   encryptedValue String    @map("encrypted_value")
@@ -115,36 +197,395 @@ model Credential {
 
   createdBy        User               @relation(fields: [createdById], references: [id])
   credentialAccess CredentialAccess[]
+  versions         CredentialVersion[]
+  teamCredentials  TeamCredential[]
+  requests         AccessRequest[]
 
   @@index([createdById])
   @@index([expiresAt])
   @@index([deletedAt])
+  @@index([credType])
   @@map("credentials")
 }
 
 // ─── Assets ──────────────────────────────────────────────────────────────────
 
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  /// Two-letter prefix used when auto-generating asset IDs (e.g. HW-12345).
+  prefix    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  assets   Asset[]
+  requests AccessRequest[]
+
+  @@map("categories")
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  assets Asset[]
+
+  @@map("departments")
+}
+
 model Asset {
-  id          String        @id @default(cuid())
-  assetId     String        @unique @map("asset_id")
+  id          String      @id @default(cuid())
+  assetId     String      @unique @map("asset_id")
   name        String
-  category    AssetCategory
-  status      AssetStatus   @default(ACTIVE)
+  categoryId  String      @map("category_id")
+  status      AssetStatus @default(ACTIVE)
   location    String?
   notes       String?
-  deletedAt   DateTime?     @map("deleted_at")
-  createdById String        @map("created_by_id")
-  createdAt   DateTime      @default(now()) @map("created_at")
-  updatedAt   DateTime      @updatedAt @map("updated_at")
 
-  createdBy   User          @relation(fields: [createdById], references: [id])
-  assetAccess AssetAccess[]
+  assigneeId   String? @map("assignee_id")
+  departmentId String? @map("department_id")
+
+  serialNumber  String? @map("serial_number")
+  manufacturer  String?
+  model         String?
+  specification String?
+
+  vendor             String?
+  purchaseDate       DateTime?          @map("purchase_date") @db.Date
+  purchaseCost       Decimal?           @map("purchase_cost") @db.Decimal(14, 2)
+  warrantyExpiry     DateTime?          @map("warranty_expiry") @db.Date
+  insuranceStatus    InsuranceStatus?   @map("insurance_status")
+  policyRef          String?            @map("policy_ref")
+  depreciationMethod DepreciationMethod @default(STRAIGHT_LINE) @map("depreciation_method")
+  usefulLifeYears    Int?               @map("useful_life_years")
+
+  /// Set when the assignee is deactivated so admins can recover the device.
+  recoveryRequestedAt DateTime? @map("recovery_requested_at")
+
+  // Disposal / certificate of destruction
+  disposedAt      DateTime?   @map("disposed_at")
+  disposedById    String?     @map("disposed_by_id")
+  wipedBy         String?     @map("wiped_by")
+  wipeMethod      WipeMethod? @map("wipe_method")
+  disposalNotes   String?     @map("disposal_notes")
+  certificateRef  String?     @unique @map("certificate_ref")
+  certificateHash String?     @map("certificate_hash")
+
+  deletedAt   DateTime?   @map("deleted_at")
+  createdById String      @map("created_by_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  createdBy      User                 @relation("AssetCreator", fields: [createdById], references: [id])
+  assignee       User?                @relation("AssetAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  category       Category             @relation(fields: [categoryId], references: [id])
+  department     Department?          @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  assetAccess    AssetAccess[]
+  checkouts      AssetCheckout[]
+  serviceRecords AssetServiceRecord[]
+  attachments    AssetAttachment[]
+  teamAssets     TeamAsset[]
+  requests       AccessRequest[]
 
   @@index([assetId])
-  @@index([category])
+  @@index([categoryId])
   @@index([status])
+  @@index([assigneeId])
+  @@index([departmentId])
   @@index([deletedAt])
   @@map("assets")
+}
+
+model AssetCheckout {
+  id             String    @id @default(cuid())
+  assetId        String    @map("asset_id")
+  assigneeId     String    @map("assignee_id")
+  checkedOutById String    @map("checked_out_by_id")
+  checkedOutAt   DateTime  @default(now()) @map("checked_out_at")
+  dueDate        DateTime  @map("due_date") @db.Date
+  returnedAt     DateTime? @map("returned_at")
+  /// True when the system closed the checkout because the due date passed.
+  autoReturned   Boolean   @default(false) @map("auto_returned")
+  /// True when this checkout created the assignee's AssetAccess row (so it is removed on return).
+  accessGranted  Boolean   @default(false) @map("access_granted")
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@index([assigneeId])
+  @@index([returnedAt, dueDate])
+  @@map("asset_checkouts")
+}
+
+model AssetServiceRecord {
+  id          String   @id @default(cuid())
+  assetId     String   @map("asset_id")
+  serviceDate DateTime @map("service_date") @db.Date
+  technician  String
+  description String
+  cost        Decimal  @db.Decimal(14, 2)
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@map("asset_service_records")
+}
+
+model AssetAttachment {
+  id           String   @id @default(cuid())
+  assetId      String   @map("asset_id")
+  fileName     String   @map("file_name")
+  mimeType     String   @map("mime_type")
+  sizeBytes    Int      @map("size_bytes")
+  url          String
+  publicId     String   @map("public_id")
+  resourceType String   @default("raw") @map("resource_type")
+  uploadedById String   @map("uploaded_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@index([assetId])
+  @@map("asset_attachments")
+}
+
+model CredentialVersion {
+  id             String   @id @default(cuid())
+  credentialId   String   @map("credential_id")
+  version        Int
+  encryptedValue String   @map("encrypted_value")
+  iv             String
+  authTag        String   @map("auth_tag")
+  keyVersion     Int      @default(1) @map("key_version")
+  createdById    String   @map("created_by_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  credential Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@unique([credentialId, version])
+  @@map("credential_versions")
+}
+
+// ─── Teams ───────────────────────────────────────────────────────────────────
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdById String   @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  members     TeamMember[]
+  assets      TeamAsset[]
+  credentials TeamCredential[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  teamId   String   @map("team_id")
+  userId   String   @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+model TeamAsset {
+  teamId     String          @map("team_id")
+  assetId    String          @map("asset_id")
+  permission PermissionLevel @default(VIEW)
+  grantedAt  DateTime        @default(now()) @map("granted_at")
+
+  team  Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, assetId])
+  @@index([assetId])
+  @@map("team_assets")
+}
+
+model TeamCredential {
+  teamId       String          @map("team_id")
+  credentialId String          @map("credential_id")
+  permission   PermissionLevel @default(VIEW)
+  grantedAt    DateTime        @default(now()) @map("granted_at")
+
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  credential Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+
+  @@id([teamId, credentialId])
+  @@index([credentialId])
+  @@map("team_credentials")
+}
+
+// ─── Requests ────────────────────────────────────────────────────────────────
+
+model AccessRequest {
+  id           String        @id @default(cuid())
+  type         RequestType
+  status       RequestStatus @default(PENDING)
+  requesterId  String        @map("requester_id")
+  assetId      String?       @map("asset_id")
+  credentialId String?       @map("credential_id")
+
+  /// Access requests: why the access is needed (max 200). Purchase requests: business justification.
+  reason          String?
+  itemDescription String?  @map("item_description")
+  purchaseCost    Decimal? @map("purchase_cost") @db.Decimal(14, 2)
+  categoryId      String?  @map("category_id")
+
+  reviewedById      String?          @map("reviewed_by_id")
+  reviewedAt        DateTime?        @map("reviewed_at")
+  reviewNote        String?          @map("review_note")
+  grantedPermission PermissionLevel? @map("granted_permission")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  requester  User        @relation("RequestRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  asset      Asset?      @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  credential Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  category   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([requesterId])
+  @@index([type])
+  @@map("access_requests")
+}
+
+// ─── Settings ────────────────────────────────────────────────────────────────
+
+model UserPreference {
+  userId String @id @map("user_id")
+
+  // Notifications
+  transactionAlerts     Boolean @default(true) @map("transaction_alerts")
+  credentialRevealEvents Boolean @default(true) @map("credential_reveal_events")
+  expiryWarnings        Boolean @default(true) @map("expiry_warnings")
+  criticalEventsOnly    Boolean @default(false) @map("critical_events_only")
+  emailDigest           Boolean @default(true) @map("email_digest")
+  weeklyDigest          Boolean @default(true) @map("weekly_digest")
+  slackWebhookUrl       String? @map("slack_webhook_url")
+
+  // Appearance
+  theme          ThemePreference      @default(SYSTEM)
+  fontSize       FontSizePreference   @default(DEFAULT) @map("font_size")
+  sidebarDefault SidebarPreference    @default(EXPANDED) @map("sidebar_default")
+  secretMask     SecretMaskPreference @default(BULLETS) @map("secret_mask")
+  reduceMotion   Boolean              @default(false) @map("reduce_motion")
+
+  // Security
+  loginNotifications     Boolean @default(true) @map("login_notifications")
+  requireReauthForReveals Boolean @default(false) @map("require_reauth_for_reveals")
+  /// Idle timeout in minutes; null falls back to INACTIVE_SESSION_TIMEOUT_MIN.
+  sessionTimeoutMin      Int?    @map("session_timeout_min")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model LoginEvent {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  success    Boolean
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  deviceName String?  @map("device_name")
+  /// True for failed attempts and for successful logins from a never-before-seen IP.
+  suspicious Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("login_events")
+}
+
+model ApiKey {
+  id         String      @id @default(cuid())
+  userId     String      @map("user_id")
+  name       String
+  scope      ApiKeyScope @default(READ_ONLY)
+  /// SHA-256 of the full key. The key itself is shown once at creation.
+  keyHash    String      @unique @map("key_hash")
+  keyPrefix  String      @map("key_prefix")
+  lastFour   String      @map("last_four")
+  lastUsedAt DateTime?   @map("last_used_at")
+  revokedAt  DateTime?   @map("revoked_at")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model AlertRule {
+  id            String   @id @default(cuid())
+  name          String
+  actionType    String   @map("action_type")
+  threshold     Int
+  windowMinutes Int      @map("window_minutes")
+  enabled       Boolean  @default(true)
+  createdById   String   @map("created_by_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  events AlertEvent[]
+
+  @@index([actionType, enabled])
+  @@map("alert_rules")
+}
+
+model AlertEvent {
+  id          String   @id @default(cuid())
+  ruleId      String   @map("rule_id")
+  /// The user whose activity crossed the threshold.
+  userId      String?  @map("user_id")
+  count       Int
+  triggeredAt DateTime @default(now()) @map("triggered_at")
+
+  rule AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId, userId, triggeredAt])
+  @@map("alert_events")
+}
+
+model Webhook {
+  id               String    @id @default(cuid())
+  url              String
+  events           String[]
+  /// HMAC signing secret (shown once at creation).
+  secret           String
+  active           Boolean   @default(true)
+  lastDeliveryAt   DateTime? @map("last_delivery_at")
+  lastDeliveryCode Int?      @map("last_delivery_code")
+  createdById      String    @map("created_by_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  @@map("webhooks")
+}
+
+model Integration {
+  id           String              @id @default(cuid())
+  provider     IntegrationProvider @unique
+  /// Incoming-webhook URL, encrypted at rest.
+  webhookUrlEnc String             @map("webhook_url_enc")
+  connectedById String             @map("connected_by_id")
+  connectedAt  DateTime            @default(now()) @map("connected_at")
+
+  @@map("integrations")
 }
 
 // ─── ACL Join Tables ─────────────────────────────────────────────────────────

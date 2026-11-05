@@ -5,7 +5,12 @@ import { uploadAvatar, deleteAvatar } from '../../lib/cloudinary.js';
 import { signAccessToken, generateRefreshToken, hashToken } from '../../services/token.service.js';
 import { hashPassword, verifyPassword } from '../../services/password.service.js';
 import { generateInviteToken } from '../../services/token.service.js';
-import { sendInviteEmail } from '../../services/email.service.js';
+import { sendInviteEmail, sendAssetRecoveryNotification } from '../../services/email.service.js';
+import { createAuditLog, type AuditParams } from '../../services/audit.service.js';
+import { emitEvent } from '../../services/events.service.js';
+import { csvList } from '../../lib/validate.js';
+import { getOrCreateDepartment } from '../departments/departments.service.js';
+import type { Prisma } from '@prisma/client';
 import { randomBytes } from 'crypto';
 import {
   ConflictError,
@@ -15,17 +20,42 @@ import {
 } from '../../lib/errors.js';
 import type { Role } from '@prisma/client';
 
+type Ctx = Pick<AuditParams, 'ipAddress' | 'userAgent'>;
+
 const SAFE_USER_SELECT = {
   id: true,
   email: true,
   name: true,
   role: true,
+  department: true,
+  avatarUrl: true,
   isActive: true,
+  inviteTokenHash: true,
   mustChangePassword: true,
   lastLoginAt: true,
   createdAt: true,
   updatedAt: true,
-} as const;
+  teamMemberships: { select: { team: { select: { id: true, name: true } } } },
+} as const satisfies Prisma.UserSelect;
+
+type UserRow = Prisma.UserGetPayload<{ select: typeof SAFE_USER_SELECT }>;
+
+export type UserStatus = 'ACTIVE' | 'PENDING' | 'DEACTIVATED';
+
+/** ACTIVE: can sign in. PENDING: invited, has not accepted yet. DEACTIVATED: disabled by an admin. */
+export function userStatus(u: { isActive: boolean; inviteTokenHash: string | null }): UserStatus {
+  if (u.isActive) return 'ACTIVE';
+  return u.inviteTokenHash ? 'PENDING' : 'DEACTIVATED';
+}
+
+function serializeUser(u: UserRow) {
+  const { inviteTokenHash, teamMemberships, ...rest } = u;
+  return {
+    ...rest,
+    status: userStatus(u),
+    teams: teamMemberships.map((m) => m.team),
+  };
+}
 
 const PROFILE_SELECT = {
   id: true,
@@ -63,7 +93,10 @@ export async function inviteUser(
   name: string,
   role: Role,
   invitedByUserId: string,
+  department?: string,
+  ctx: Ctx = {},
 ) {
+  const departmentName = department ? (await getOrCreateDepartment(department)).name : undefined;
   const existing = await prisma.user.findUnique({
     where: { email },
     select: { id: true, deletedAt: true },
@@ -86,6 +119,7 @@ export async function inviteUser(
       email,
       name,
       role,
+      department: departmentName,
       passwordHash,
       isActive: false, // inactive until they accept the invite
       mustChangePassword: false,
@@ -99,7 +133,10 @@ export async function inviteUser(
     logger.error({ err, email }, 'Failed to send invite email');
   });
 
-  return user;
+  await createAuditLog({ userId: invitedByUserId, action: 'CREATE', targetType: 'USER', targetId: user.id, metadata: { invited: true, role }, ...ctx });
+  emitEvent('user.invited', { id: user.id, email: user.email, role });
+
+  return serializeUser(user);
 }
 
 export async function resendInvite(userId: string, requestedByUserId: string) {
@@ -134,24 +171,86 @@ export async function resendInvite(userId: string, requestedByUserId: string) {
     logger.error({ err, email: user.email }, 'Failed to resend invite email');
   });
 
-  return updated;
+  return serializeUser(updated);
 }
 
-export async function listUsers(page: number, limit: number) {
+function buildUserWhere(filters: { search?: string; role?: string; status?: string; department?: string }): Prisma.UserWhereInput {
+  const and: Prisma.UserWhereInput[] = [{ deletedAt: null }];
+  if (filters.search) {
+    const contains = { contains: filters.search, mode: 'insensitive' as const };
+    and.push({ OR: [{ name: contains }, { email: contains }] });
+  }
+  const roles = csvList(filters.role);
+  if (roles) and.push({ role: { in: roles.map((r) => r.toUpperCase()) as Role[] } });
+  const departments = csvList(filters.department);
+  if (departments) and.push({ OR: departments.map((d) => ({ department: { equals: d, mode: 'insensitive' as const } })) });
+  const statuses = csvList(filters.status)?.map((s) => s.toUpperCase());
+  if (statuses) {
+    const ors: Prisma.UserWhereInput[] = [];
+    if (statuses.includes('ACTIVE')) ors.push({ isActive: true });
+    if (statuses.includes('PENDING')) ors.push({ isActive: false, inviteTokenHash: { not: null } });
+    if (statuses.includes('DEACTIVATED')) ors.push({ isActive: false, inviteTokenHash: null });
+    and.push({ OR: ors.length ? ors : [{ id: '__none__' }] });
+  }
+  return { AND: and };
+}
+
+export async function listUsers(
+  page: number,
+  limit: number,
+  filters: { search?: string; role?: string; status?: string; department?: string } = {},
+) {
   const skip = (page - 1) * limit;
+  const where = buildUserWhere(filters);
 
   const [users, total] = await Promise.all([
     prisma.user.findMany({
-      where: { deletedAt: null },
+      where,
       orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
       select: SAFE_USER_SELECT,
     }),
-    prisma.user.count({ where: { deletedAt: null } }),
+    prisma.user.count({ where }),
   ]);
 
-  return { users, total, page, limit };
+  return { users: users.map(serializeUser), total, page, limit };
+}
+
+/** Header cards and filter counts on the Users screen. */
+export async function userStats() {
+  const base: Prisma.UserWhereInput = { deletedAt: null };
+  const [total, active, pending, deactivated, byRole] = await Promise.all([
+    prisma.user.count({ where: base }),
+    prisma.user.count({ where: { ...base, isActive: true } }),
+    prisma.user.count({ where: { ...base, isActive: false, inviteTokenHash: { not: null } } }),
+    prisma.user.count({ where: { ...base, isActive: false, inviteTokenHash: null } }),
+    prisma.user.groupBy({ by: ['role'], where: base, _count: { _all: true } }),
+  ]);
+  const roles = ['SUPER_ADMIN', 'MANAGER', 'MEMBER', 'VIEWER'].map((r) => ({
+    value: r,
+    count: byRole.find((b) => b.role === r)?._count._all ?? 0,
+  }));
+  return { total, active, pending, deactivated, roles };
+}
+
+/** Lightweight directory for "search registered user" pickers; available to any signed-in user. */
+export async function lookupUsers(search: string | undefined, limit: number) {
+  return prisma.user.findMany({
+    where: {
+      deletedAt: null,
+      isActive: true,
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true },
+    orderBy: { name: 'asc' },
+    take: limit,
+  });
 }
 
 export async function getUserById(id: string) {
@@ -164,13 +263,44 @@ export async function getUserById(id: string) {
     throw new NotFoundError('User not found');
   }
 
-  return user;
+  return serializeUser(user);
+}
+
+/** Everything the "User Details" dialog shows: profile, teams, assigned assets and shared credentials. */
+export async function getUserDetails(id: string) {
+  const base = await getUserById(id);
+  const [assets, direct, viaTeams] = await Promise.all([
+    prisma.asset.findMany({
+      where: { assigneeId: id, deletedAt: null },
+      select: { id: true, assetId: true, name: true, category: { select: { name: true } } },
+    }),
+    prisma.credentialAccess.findMany({
+      where: { userId: id, credential: { deletedAt: null } },
+      select: { permission: true, credential: { select: { id: true, friendlyName: true, credType: true } } },
+    }),
+    prisma.teamCredential.findMany({
+      where: { team: { members: { some: { userId: id } } }, credential: { deletedAt: null } },
+      select: { permission: true, credential: { select: { id: true, friendlyName: true, credType: true } } },
+    }),
+  ]);
+  const shared = new Map<string, { id: string; friendlyName: string; credType: string; permission: string }>();
+  const rank: Record<string, number> = { VIEW: 1, COPY: 2, EDIT: 3, MANAGE: 4 };
+  for (const row of [...direct, ...viaTeams]) {
+    const prev = shared.get(row.credential.id);
+    if (!prev || rank[row.permission] > rank[prev.permission]) shared.set(row.credential.id, { ...row.credential, permission: row.permission });
+  }
+  return {
+    ...base,
+    assignedAssets: assets.map((a) => ({ id: a.id, assetId: a.assetId, name: a.name, category: a.category.name })),
+    sharedCredentials: [...shared.values()],
+  };
 }
 
 export async function updateUser(
   userId: string,
-  data: { name?: string; role?: Role },
+  data: { name?: string; email?: string; role?: Role; department?: string | null },
   requestedByUserId: string,
+  ctx: Ctx = {},
 ) {
   const target = await prisma.user.findFirst({
     where: { id: userId, deletedAt: null },
@@ -201,18 +331,35 @@ export async function updateUser(
     }
   }
 
+  if (data.email !== undefined && data.email !== target.email) {
+    const taken = await prisma.user.findUnique({ where: { email: data.email }, select: { id: true } });
+    if (taken) throw new ConflictError('Email already in use');
+  }
+
+  let department: string | null | undefined;
+  if (data.department !== undefined) {
+    department = data.department === null ? null : (await getOrCreateDepartment(data.department)).name;
+  }
+
   const updated = await prisma.user.update({
     where: { id: userId },
-    data,
+    data: {
+      name: data.name,
+      email: data.email,
+      role: data.role,
+      ...(department !== undefined && { department }),
+    },
     select: SAFE_USER_SELECT,
   });
 
-  return updated;
+  await createAuditLog({ userId: requestedByUserId, action: 'EDIT', targetType: 'USER', targetId: userId, ...ctx });
+  return serializeUser(updated);
 }
 
 export async function deactivateUser(
   userId: string,
   requestedByUserId: string,
+  ctx: Ctx = {},
 ) {
   if (userId === requestedByUserId) {
     throw new ForbiddenError('Cannot deactivate yourself');
@@ -230,6 +377,11 @@ export async function deactivateUser(
     throw new ForbiddenError('Cannot deactivate a SUPER_ADMIN');
   }
 
+  const assigned = await prisma.asset.findMany({
+    where: { assigneeId: userId, deletedAt: null },
+    select: { id: true, assetId: true, name: true },
+  });
+
   const [updated] = await prisma.$transaction([
     prisma.user.update({
       where: { id: userId },
@@ -237,9 +389,58 @@ export async function deactivateUser(
       select: SAFE_USER_SELECT,
     }),
     prisma.session.deleteMany({ where: { userId } }),
+    // Flag every asset the user holds so admins can recover it.
+    prisma.asset.updateMany({
+      where: { assigneeId: userId, deletedAt: null },
+      data: { recoveryRequestedAt: new Date() },
+    }),
   ]);
 
-  return updated;
+  await createAuditLog({
+    userId: requestedByUserId,
+    action: 'EDIT',
+    targetType: 'USER',
+    targetId: userId,
+    metadata: { deactivated: true, flaggedAssets: assigned.length },
+    ...ctx,
+  });
+  emitEvent('user.deactivated', { id: userId, email: target.email, flaggedAssets: assigned.length });
+
+  if (assigned.length > 0) {
+    const admins = await prisma.user.findMany({
+      where: { role: { in: ['SUPER_ADMIN', 'MANAGER'] }, isActive: true, deletedAt: null },
+      select: { email: true },
+    });
+    for (const admin of admins) {
+      sendAssetRecoveryNotification(admin.email, target.name, assigned).catch((err) => {
+        logger.error({ err, to: admin.email }, 'Failed to send asset recovery notification');
+      });
+    }
+  }
+
+  return { user: serializeUser(updated), flaggedAssets: assigned.length };
+}
+
+export async function reactivateUser(userId: string, requestedByUserId: string, ctx: Ctx = {}) {
+  const target = await prisma.user.findFirst({
+    where: { id: userId, deletedAt: null, isActive: false, inviteTokenHash: null },
+  });
+  if (!target) throw new NotFoundError('Deactivated user not found');
+
+  const updated = await prisma.user.update({
+    where: { id: userId },
+    data: { isActive: true, failedAttempts: 0, lockedUntil: null },
+    select: SAFE_USER_SELECT,
+  });
+  await createAuditLog({
+    userId: requestedByUserId,
+    action: 'EDIT',
+    targetType: 'USER',
+    targetId: userId,
+    metadata: { reactivated: true },
+    ...ctx,
+  });
+  return serializeUser(updated);
 }
 
 export async function getMyProfile(userId: string) {
