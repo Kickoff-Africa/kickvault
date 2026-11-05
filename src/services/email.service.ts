@@ -91,3 +91,51 @@ export async function sendInviteEmail(
     html: inviteEmailHtml(inviteUrl, env.INVITE_TOKEN_EXPIRY_DAYS),
   });
 }
+
+const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+/** Sent to admins when a user is deactivated while holding assets that must be recovered. */
+export async function sendAssetRecoveryNotification(
+  to: string,
+  deactivatedUserName: string,
+  assets: { assetId: string; name: string }[],
+): Promise<void> {
+  const list = assets.map((a) => `${a.assetId} – ${a.name}`);
+  await sendEmail({
+    to,
+    subject: `Asset recovery needed: ${deactivatedUserName} was deactivated`,
+    text: `${deactivatedUserName}'s account was deactivated. The following assets are assigned to them and have been flagged for recovery:\n\n${list.join('\n')}`,
+    html: `<p><strong>${esc(deactivatedUserName)}</strong>'s account was deactivated. The following assets are assigned to them and have been flagged for recovery:</p><ul>${list.map((l) => `<li>${esc(l)}</li>`).join('')}</ul>`,
+  });
+}
+
+/** Sent when a sign-in happens from an IP the user has not used before. */
+export async function sendNewLoginAlertEmail(
+  to: string,
+  device: string,
+  ip: string | null,
+): Promise<void> {
+  await sendEmail({
+    to,
+    subject: 'New sign-in to your Kick Vault account',
+    text: `We noticed a new sign-in from ${device}${ip ? ` (IP ${ip})` : ''}. If this was not you, revoke the session in Settings → Sessions and change your password.`,
+    html: `<p>We noticed a new sign-in from <strong>${esc(device)}</strong>${ip ? ` (IP ${esc(ip)})` : ''}.</p><p>If this was not you, revoke the session in Settings → Sessions and change your password.</p>`,
+  });
+}
+
+export async function sendAlertTriggeredEmail(
+  to: string,
+  ruleName: string,
+  userLabel: string,
+  action: string,
+  count: number,
+  windowMinutes: number,
+): Promise<void> {
+  const line = `${userLabel} performed ${action} ${count} time(s) within ${windowMinutes} minutes (rule: ${ruleName}).`;
+  await sendEmail({
+    to,
+    subject: `Kick Vault alert: ${ruleName}`,
+    text: line,
+    html: `<p><strong>Alert rule triggered:</strong> ${esc(ruleName)}</p><p>${esc(line)}</p>`,
+  });
+}

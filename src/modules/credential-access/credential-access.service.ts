@@ -67,3 +67,29 @@ export async function listCredentialAccess(credentialId: string) {
 
   return access;
 }
+
+/** Sharing view for the "Share" dialog: the owner, everyone with direct access, and team grants. */
+export async function getCredentialSharing(credentialId: string) {
+  const credential = await prisma.credential.findFirst({
+    where: { id: credentialId, deletedAt: null },
+    select: { createdBy: { select: { id: true, name: true, email: true } } },
+  });
+  if (!credential) throw new NotFoundError('Credential not found');
+
+  const [access, teams] = await Promise.all([
+    prisma.credentialAccess.findMany({
+      where: { credentialId },
+      include: { user: { select: { id: true, email: true, name: true, avatarUrl: true } } },
+      orderBy: { grantedAt: 'asc' },
+    }),
+    prisma.teamCredential.findMany({
+      where: { credentialId },
+      include: { team: { select: { id: true, name: true } } },
+    }),
+  ]);
+  return {
+    owner: credential.createdBy,
+    access: access.map((a) => ({ ...a, isOwner: a.userId === credential.createdBy.id })),
+    teams: teams.map((t) => ({ team: t.team, permission: t.permission, grantedAt: t.grantedAt })),
+  };
+}

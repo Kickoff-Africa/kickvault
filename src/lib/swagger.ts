@@ -1,5 +1,6 @@
 import { type Express } from 'express';
 import swaggerUi from 'swagger-ui-express';
+import { v2Paths, v2Schemas, v2Tags } from './swagger-v2.js';
 
 const spec = {
   openapi: '3.0.3',
@@ -1366,8 +1367,16 @@ const spec = {
   },
 };
 
+// Layer the v2 definitions over the base spec (a path defined in v2 replaces the base one).
+const fullSpec = {
+  ...spec,
+  tags: [...spec.tags, ...v2Tags],
+  paths: { ...spec.paths, ...v2Paths },
+  components: { ...spec.components, schemas: { ...spec.components.schemas, ...v2Schemas } },
+};
+
 export function registerSwagger(app: Express): void {
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(spec));
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(fullSpec));
   // Also expose the raw spec as JSON for tooling
-  app.get('/docs.json', (_req, res) => res.json(spec));
+  app.get('/docs.json', (_req, res) => res.json(fullSpec));
 }

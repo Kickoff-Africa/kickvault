@@ -1,43 +1,48 @@
 import type { Request, Response } from 'express';
-import { ZodError } from 'zod';
+import { PermissionLevel } from '@prisma/client';
 import { grantAccessSchema } from './asset-access.validation.js';
-import {
-  grantAssetAccess,
-  revokeAssetAccess,
-  listAssetAccess,
-} from './asset-access.service.js';
-import { ValidationError } from '../../lib/errors.js';
+import { grantAssetAccess, revokeAssetAccess, getAssetSharing } from './asset-access.service.js';
+import { checkAssetAccess } from '../../middleware/requireResourceAccess.js';
+import { createAuditLog, requestContext } from '../../services/audit.service.js';
+import { parse } from '../../lib/validate.js';
 
-function parseBody<T>(schema: { parse: (data: unknown) => T }, body: unknown): T {
-  try {
-    return schema.parse(body);
-  } catch (err) {
-    if (err instanceof ZodError) {
-      throw new ValidationError(err.issues[0].message);
-    }
-    throw err;
-  }
+// Sharing requires MANAGE on the asset (creator, MANAGE-level grantees, SUPER_ADMIN and MANAGER).
+async function assertCanShare(req: Request): Promise<string> {
+  const assetId = req.params.assetId as string;
+  await checkAssetAccess(req.user!.id, req.user!.role as string, assetId, PermissionLevel.MANAGE);
+  return assetId;
 }
 
 export async function grant(req: Request, res: Response): Promise<void> {
-  const body = parseBody(grantAccessSchema, req.body);
-  const access = await grantAssetAccess(
-    req.params.assetId as string,
-    body.userId,
-    body.permission,
-  );
+  const assetId = await assertCanShare(req);
+  const body = parse(grantAccessSchema, req.body);
+  const access = await grantAssetAccess(assetId, body.userId, body.permission);
+  await createAuditLog({
+    userId: req.user!.id,
+    action: 'SHARE',
+    targetType: 'ASSET',
+    targetId: assetId,
+    metadata: { sharedWith: body.userId, permission: body.permission },
+    ...requestContext(req),
+  });
   res.status(201).json({ access });
 }
 
 export async function revoke(req: Request, res: Response): Promise<void> {
-  await revokeAssetAccess(
-    req.params.assetId as string,
-    req.params.userId as string,
-  );
+  const assetId = await assertCanShare(req);
+  await revokeAssetAccess(assetId, req.params.userId as string);
+  await createAuditLog({
+    userId: req.user!.id,
+    action: 'REVOKE_SHARE',
+    targetType: 'ASSET',
+    targetId: assetId,
+    metadata: { revokedFrom: req.params.userId as string },
+    ...requestContext(req),
+  });
   res.status(204).end();
 }
 
 export async function list(req: Request, res: Response): Promise<void> {
-  const access = await listAssetAccess(req.params.assetId as string);
-  res.status(200).json({ access });
+  const assetId = await assertCanShare(req);
+  res.status(200).json(await getAssetSharing(assetId));
 }

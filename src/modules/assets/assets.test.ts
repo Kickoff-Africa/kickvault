@@ -73,6 +73,20 @@ async function getAuthToken(user: { id: string; role: Role }): Promise<string> {
   });
 }
 
+// Built-in categories are seeded by the migration with fixed IDs.
+const CATEGORY_IDS: Record<string, string> = {
+  HARDWARE: 'cat_hardware',
+  SOFTWARE: 'cat_software',
+  DIGITAL: 'cat_digital',
+  INTANGIBLE: 'cat_intangible',
+};
+const CATEGORY_NAMES: Record<string, string> = {
+  HARDWARE: 'Hardware',
+  SOFTWARE: 'Software',
+  DIGITAL: 'Digital',
+  INTANGIBLE: 'Intangible',
+};
+
 let assetCounter = 0;
 
 async function createTestAsset(
@@ -92,7 +106,7 @@ async function createTestAsset(
     data: {
       assetId,
       name: overrides?.name ?? `Test Asset ${assetCounter}`,
-      category: (overrides?.category as any) ?? 'HARDWARE',
+      categoryId: CATEGORY_IDS[(overrides?.category ?? 'HARDWARE').toUpperCase()] ?? 'cat_hardware',
       status: (overrides?.status as any) ?? 'ACTIVE',
       location: overrides?.location,
       notes: overrides?.notes,
@@ -131,7 +145,7 @@ describeWithDb('ASSET-01: Asset CRUD - Create', () => {
     expect(res.body.asset).toHaveProperty('id');
     expect(res.body.asset.assetId).toBe('ASSET-FULL-001');
     expect(res.body.asset.name).toBe('Full Asset');
-    expect(res.body.asset.category).toBe('HARDWARE');
+    expect(res.body.asset.category).toBe('Hardware');
     expect(res.body.asset.status).toBe('ACTIVE');
     expect(res.body.asset.location).toBe('Office A');
     expect(res.body.asset.notes).toBe('Test notes');
@@ -233,7 +247,7 @@ describeWithDb('ASSET-02: Category enforcement', () => {
         });
 
       expect(res.status).toBe(201);
-      expect(res.body.asset.category).toBe(category);
+      expect(res.body.asset.category).toBe(CATEGORY_NAMES[category]);
     },
   );
 

@@ -87,7 +87,7 @@ async function createTestAsset(createdById: string) {
     data: {
       assetId: `ASSET-${assetCounter}-${Date.now()}`,
       name: `Test Asset ${assetCounter}`,
-      category: 'HARDWARE',
+      categoryId: 'cat_hardware',
       status: 'ACTIVE',
       createdById,
     },

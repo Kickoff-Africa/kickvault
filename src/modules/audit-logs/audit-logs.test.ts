@@ -172,7 +172,7 @@ describeWithDb('AUDIT-01: Auto-logging for credential operations', () => {
     expect(logs[0].userId).toBe(admin.id);
   });
 
-  it('updating a credential produces an audit log with action=UPDATE', async () => {
+  it('updating a credential produces an audit log with action=EDIT', async () => {
     const admin = await createTestUser('SUPER_ADMIN');
     const token = await getAuthToken(admin);
 
@@ -195,7 +195,7 @@ describeWithDb('AUDIT-01: Auto-logging for credential operations', () => {
     expect(updateRes.status).toBe(200);
 
     const logs = await basePrisma.auditLog.findMany({
-      where: { targetId: credId, action: 'UPDATE' },
+      where: { targetId: credId, action: 'EDIT' },
     });
     expect(logs.length).toBeGreaterThanOrEqual(1);
     expect(logs[0].targetType).toBe('CREDENTIAL');
@@ -470,7 +470,7 @@ describeWithDb('AUDIT-06: CSV export', () => {
 
     expect(res.status).toBe(200);
     const lines = (res.text as string).split('\n');
-    expect(lines[0]).toBe('ID,Timestamp,User Email,User Name,Action,Target Type,Target ID');
+    expect(lines[0]).toBe('ID,Timestamp,User Email,User Name,Action,Target Type,Target ID,Target Name');
   });
 
   it('CSV export contains data rows matching audit log entries', async () => {

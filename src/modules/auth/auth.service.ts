@@ -5,18 +5,49 @@ import {
   hashToken,
 } from '../../services/token.service.js';
 import { verifyPassword, hashPassword } from '../../services/password.service.js';
-import { sendPasswordResetEmail, sendVerificationEmail } from '../../services/email.service.js';
+import { sendPasswordResetEmail, sendVerificationEmail, sendNewLoginAlertEmail } from '../../services/email.service.js';
+import { createAuditLog } from '../../services/audit.service.js';
+import { verifyTotp } from '../../lib/totp.js';
+import { unpackTotpSecret } from '../users/users.settings.service.js';
 import { prisma } from '../../config/database.js';
 import { env } from '../../config/env.js';
-import { UnauthorizedError, ForbiddenError, ConflictError } from '../../lib/errors.js';
+import { AppError, UnauthorizedError, ForbiddenError, ConflictError } from '../../lib/errors.js';
 import { logger } from '../../lib/logger.js';
 import { parseDeviceName } from '../../lib/device.js';
+
+/** Record a sign-in attempt for the "Recent Login History" list. Never blocks the login flow. */
+async function recordLoginEvent(
+  userId: string,
+  success: boolean,
+  userAgent?: string,
+  ipAddress?: string,
+): Promise<boolean> {
+  try {
+    let suspicious = !success;
+    if (success && ipAddress) {
+      const [previous, seenIp] = await Promise.all([
+        prisma.loginEvent.count({ where: { userId, success: true } }),
+        prisma.loginEvent.count({ where: { userId, success: true, ipAddress } }),
+      ]);
+      // First-ever login is never suspicious; a new IP after that is.
+      suspicious = previous > 0 && seenIp === 0;
+    }
+    await prisma.loginEvent.create({
+      data: { userId, success, ipAddress: ipAddress ?? null, userAgent: userAgent ?? null, deviceName: parseDeviceName(userAgent), suspicious },
+    });
+    return suspicious;
+  } catch (err) {
+    logger.error({ err, userId }, 'Failed to record login event');
+    return false;
+  }
+}
 
 export async function loginUser(
   email: string,
   password: string,
   userAgent?: string,
   ipAddress?: string,
+  totpCode?: string,
 ) {
   const user = await prisma.user.findUnique({
     where: { email, deletedAt: null },
@@ -50,7 +81,17 @@ export async function loginUser(
 
   const valid = await verifyPassword(user.passwordHash, password);
 
-  if (!valid) {
+  // Two-factor: only checked once the password is correct so it cannot be used to probe accounts.
+  let totpValid = true;
+  if (valid && user.totpEnabled && user.totpSecret) {
+    if (!totpCode) {
+      throw new AppError('Two-factor authentication code required', 401, true, 'TOTP_REQUIRED');
+    }
+    totpValid = verifyTotp(unpackTotpSecret(user.totpSecret), totpCode);
+  }
+
+  if (!valid || !totpValid) {
+    void recordLoginEvent(user.id, false, userAgent, ipAddress);
     // Atomically increment failedAttempts and get updated value
     const updated = await prisma.user.update({
       where: { id: user.id },
@@ -70,7 +111,7 @@ export async function loginUser(
       });
     }
 
-    throw new UnauthorizedError('Invalid credentials');
+    throw new UnauthorizedError(valid ? 'Invalid verification code' : 'Invalid credentials');
   }
 
   // Success: reset failed attempts, update last login
@@ -107,6 +148,25 @@ export async function loginUser(
     mustChangePassword: user.mustChangePassword,
   });
 
+  const suspicious = await recordLoginEvent(user.id, true, userAgent, ipAddress);
+  await createAuditLog({
+    userId: user.id,
+    action: 'LOGIN',
+    targetType: 'SESSION',
+    targetId: session.id,
+    ipAddress,
+    userAgent,
+  }).catch((err) => logger.error({ err }, 'Failed to audit login'));
+
+  if (suspicious) {
+    const prefs = await prisma.userPreference.findUnique({ where: { userId: user.id }, select: { loginNotifications: true } });
+    if (prefs?.loginNotifications ?? true) {
+      sendNewLoginAlertEmail(user.email, parseDeviceName(userAgent), ipAddress ?? null).catch((err) =>
+        logger.error({ err }, 'Failed to send new-login alert'),
+      );
+    }
+  }
+
   return {
     accessToken,
     refreshToken,
@@ -115,8 +175,15 @@ export async function loginUser(
   };
 }
 
-export async function logoutUser(userId: string): Promise<void> {
+export async function logoutUser(userId: string, sessionId?: string, ctx: { ipAddress?: string | null; userAgent?: string | null } = {}): Promise<void> {
   await prisma.session.deleteMany({ where: { userId } });
+  await createAuditLog({
+    userId,
+    action: 'LOGOUT',
+    targetType: 'SESSION',
+    targetId: sessionId,
+    ...ctx,
+  }).catch((err) => logger.error({ err }, 'Failed to audit logout'));
 }
 
 export async function refreshSession(refreshToken: string) {
@@ -137,10 +204,13 @@ export async function refreshSession(refreshToken: string) {
     throw new UnauthorizedError('Session expired');
   }
 
-  // Check inactivity timeout
-  const inactivityCutoff = new Date(
-    Date.now() - env.INACTIVE_SESSION_TIMEOUT_MIN * 60_000,
-  );
+  // Check inactivity timeout (the user's own Session Policy overrides the server default)
+  const prefs = await prisma.userPreference.findUnique({
+    where: { userId: session.userId },
+    select: { sessionTimeoutMin: true },
+  });
+  const timeoutMin = prefs?.sessionTimeoutMin ?? env.INACTIVE_SESSION_TIMEOUT_MIN;
+  const inactivityCutoff = new Date(Date.now() - timeoutMin * 60_000);
   if (session.lastActiveAt <= inactivityCutoff) {
     await prisma.session.delete({ where: { id: session.id } });
     throw new UnauthorizedError('Session expired due to inactivity');

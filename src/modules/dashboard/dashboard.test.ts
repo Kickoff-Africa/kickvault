@@ -107,7 +107,7 @@ async function createTestAsset(createdById: string) {
     data: {
       assetId: `DASH-ASSET-${assetCounter}-${Date.now()}`,
       name: `Dash Asset ${assetCounter}`,
-      category: 'HARDWARE',
+      categoryId: 'cat_hardware',
       status: 'ACTIVE',
       createdById,
     },

@@ -42,3 +42,40 @@ export async function uploadAvatar(
 export async function deleteAvatar(publicId: string): Promise<void> {
   await cloudinary.uploader.destroy(publicId);
 }
+
+export interface UploadedFile {
+  url: string;
+  publicId: string;
+  resourceType: string;
+}
+
+/** Upload a private (authenticated) file such as a purchase receipt. Access is via short-lived signed URLs only. */
+export async function uploadPrivateFile(
+  buffer: Buffer,
+  folder: string,
+): Promise<UploadedFile> {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: `kickvault/${folder}`, resource_type: 'auto', type: 'authenticated' },
+      (error, result) => {
+        if (error || !result) return reject(error ?? new Error('Upload failed'));
+        resolve({ url: result.secure_url, publicId: result.public_id, resourceType: result.resource_type });
+      },
+    );
+    stream.end(buffer);
+  });
+}
+
+export function signedDownloadUrl(publicId: string, resourceType: string, ttlSeconds = 300): string {
+  return cloudinary.url(publicId, {
+    resource_type: resourceType,
+    type: 'authenticated',
+    sign_url: true,
+    secure: true,
+    expires_at: Math.floor(Date.now() / 1000) + ttlSeconds,
+  });
+}
+
+export async function deletePrivateFile(publicId: string, resourceType: string): Promise<void> {
+  await cloudinary.uploader.destroy(publicId, { resource_type: resourceType, type: 'authenticated' });
+}

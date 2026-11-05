@@ -1,33 +1,26 @@
 import type { Request, Response } from 'express';
-import { ZodError } from 'zod';
-import {
-  listAuditLogsQuerySchema,
-  exportAuditLogsQuerySchema,
-} from './audit-logs.validation.js';
-import { listAuditLogs, exportAuditLogsCsv } from './audit-logs.service.js';
-import { ValidationError } from '../../lib/errors.js';
-
-function parseQuery<T>(schema: { parse: (data: unknown) => T }, query: unknown): T {
-  try {
-    return schema.parse(query);
-  } catch (err) {
-    if (err instanceof ZodError) {
-      throw new ValidationError(err.issues[0].message);
-    }
-    throw err;
-  }
-}
+import { listAuditLogsQuerySchema, exportAuditLogsQuerySchema, facetsQuerySchema } from './audit-logs.validation.js';
+import { listAuditLogs, getAuditLog, auditFacets, exportAuditLogs } from './audit-logs.service.js';
+import { parse } from '../../lib/validate.js';
 
 export async function list(req: Request, res: Response): Promise<void> {
-  const query = parseQuery(listAuditLogsQuerySchema, req.query);
-  const result = await listAuditLogs(query);
-  res.json(result);
+  res.json(await listAuditLogs(parse(listAuditLogsQuerySchema, req.query)));
 }
 
-export async function exportCsv(req: Request, res: Response): Promise<void> {
-  const query = parseQuery(exportAuditLogsQuerySchema, req.query);
-  const csv = await exportAuditLogsCsv(query);
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename="audit-logs.csv"');
-  res.send(csv);
+export async function facets(req: Request, res: Response): Promise<void> {
+  res.json(await auditFacets(parse(facetsQuerySchema, req.query)));
 }
+
+export async function getOne(req: Request, res: Response): Promise<void> {
+  res.json({ log: await getAuditLog(req.params.id as string) });
+}
+
+export async function exportLogs(req: Request, res: Response): Promise<void> {
+  const out = await exportAuditLogs(parse(exportAuditLogsQuerySchema, req.query));
+  res.setHeader('Content-Type', out.contentType);
+  res.setHeader('Content-Disposition', `attachment; filename="${out.filename}"`);
+  res.send(out.body);
+}
+
+// Back-compat alias for the previous controller export name.
+export { exportLogs as exportCsv };

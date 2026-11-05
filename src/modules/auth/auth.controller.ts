@@ -36,18 +36,22 @@ function parseBody<T>(schema: { parse: (data: unknown) => T }, body: unknown): T
 }
 
 export async function login(req: Request, res: Response): Promise<void> {
-  const { email, password } = parseBody(loginSchema, req.body);
+  const { email, password, totpCode } = parseBody(loginSchema, req.body);
   const result = await loginUser(
     email,
     password,
     req.headers['user-agent'] as string | undefined,
     req.ip,
+    totpCode,
   );
   res.status(200).json(result);
 }
 
 export async function logout(req: Request, res: Response): Promise<void> {
-  await logoutUser(req.user!.id);
+  await logoutUser(req.user!.id, req.sessionId, {
+    ipAddress: req.ip ?? null,
+    userAgent: (req.headers['user-agent'] as string | undefined) ?? null,
+  });
   res.status(200).json({ message: 'Logged out successfully' });
 }
 
